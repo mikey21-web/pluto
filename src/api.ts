@@ -20,6 +20,8 @@ import { StrategyEngine } from './org/engines.ts';
 import { Workforce } from './org/workforce.ts';
 import { describeOrg } from './plane/governance.ts';
 import { MetaAgent } from './meta/engine.ts';
+import { BrainLayer } from './brain/index.ts';
+import { makeDriver } from './agents/llm.ts';
 
 const DATA_DIR = process.env.PLUTO_DATA_DIR ?? './data';
 const PORT = Number(process.env.PLUTO_PORT ?? 4000);
@@ -46,6 +48,7 @@ const factory = new AgentFactory(state);
 const verifier = new VerificationEngine(state);
 const strategy = new StrategyEngine(state);
 const meta = new MetaAgent(state, { tools });
+const brain = new BrainLayer({ defaultDriver: makeDriver() });
 
 let lastSeq = 0;
 const sseClients = new Set<import('node:http').ServerResponse>();
@@ -301,7 +304,7 @@ app.post('/api/company/:id/agents', (req, res) => {
 app.post('/api/company/:id/tasks', async (req, res) => {
   const verdict = policies.evaluate(req.params.id, req.body?.role ?? '*', req.body?.kind ?? 'task');
   if (verdict.effect === 'deny') return res.status(403).json({ error: `policy denied: ${verdict.note}` });
-  const wf = new Workforce(state, tools);
+  const wf = new Workforce(state, tools, brain);
   const task = wf.submit(req.params.id, {
     agent_id: req.body.agent_id ?? null,
     objective_id: req.body.objective_id ?? null,
@@ -331,6 +334,28 @@ app.post('/api/company/:id/meta/agents/:agentId/kill', (req, res) => {
   const a = meta.kill(req.params.id, req.params.agentId);
   if (!a) return res.status(404).json({ error: 'not found' });
   res.json({ agent_id: a.id, status: a.status, retired: true });
+});
+
+// ---- brain layer (1g) — usage + fine-tune registry
+app.get('/api/brain/usage', (_req, res) => {
+  res.json(brain.usage());
+});
+app.get('/api/company/:id/brains/tunes', (req, res) => {
+  res.json(brain.registry.list(req.params.id));
+});
+app.post('/api/company/:id/brains/tunes', (req, res) => {
+  const t = brain.registry.register({
+    company_id: req.params.id,
+    task_kind: req.body?.task_kind ?? 'default',
+    model: req.body?.model ?? 'deepseek-v4-flash',
+    active: req.body?.active,
+    fraction: req.body?.fraction,
+  });
+  res.json(t);
+});
+app.post('/api/company/:id/brains/tunes/rollback', (req, res) => {
+  const t = brain.registry.rollback(req.params.id, req.body?.task_kind ?? 'default');
+  res.json({ active: t });
 });
 
 // ---- static dashboard

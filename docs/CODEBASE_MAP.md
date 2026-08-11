@@ -85,6 +85,10 @@ Graph-based `CompanyIntelligence`: `factsAbout`, `brief`, `learnCustomer`. Plug-
 `MetaAgent`: gap detector (FAILED tasks with unfamiliar kinds + `Unknown tool:` traces), agent generator (LLM writes `AgentSpec` {name, role, prompt, tools, permissions, budget_usd, kpis, department_id} with deterministic fallback), registration flow (`spawn` → `AgentFactory` + budget + capability + memory + event), introspection (`whatCanIDo`), kill switch (`kill` → retire).
 - `detectGaps` `engine.ts:80` · `generateSpec` `:119` · `spawn` `:157` · `spawnForGap` `:183` · `whatCanIDo` `:205`
 
+### 2.12a Brain Layer — `src/brain/` (P1g, PLAN 1g)
+LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 complexity routing cheap/standard/heavy) + `PromptCache` (C93 content-addressed cross-agent cache); `tune.ts` `TuneRegistry` (C94 versioned/A-B/rollback) + `FallbackChain` (multi-provider fallback); `window.ts` `ContextWindow` (token-budget fit/split); `index.ts` `BrainLayer` facade (fit→cache→router→fallback, `usage()`). Exposed as `runtime.brain` and injected into `Workforce`/`api.ts`.
+- `ModelRouter` `router.ts:34` · `PromptCache` `router.ts:86` · `FallbackChain` `tune.ts:75` · `TuneRegistry` `tune.ts:22` · `ContextWindow` `window.ts:11` · `BrainLayer` `index.ts:24`
+
 ### 2.13 Runtime Composition — `src/runtime.ts`
 `createRuntime` wires all subsystems + adapter seams (`PlutoAdapters`) + default bus wiring (task.failed → learning).
 - `createRuntime` `runtime.ts:52` · `formOrganization` `:97` · `PlutoAdapters` `:18` · `meta` `:44`
@@ -99,8 +103,8 @@ Graph-based `CompanyIntelligence`: `factsAbout`, `brief`, `learnCustomer`. Plug-
 ### 2.15 Dashboard — `apps/dashboard/src/main.ts`
 945-line SPA (Command Center). Renders company switcher, KPIs, org graph (SVG), objectives, approvals, and a 17-view panel (`renderView` main.ts:205; nav :754). `dist/app.js` is prebuilt via esbuild.
 
-### 2.16 Tests — `test/` (16 files, 88 cases)
-`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`. `helpers.ts` isolates each runtime on a temp dir. Coverage: 92.58% line / 78.75% branch / 86.9% funcs.
+### 2.16 Tests — `test/` (17 files, 99 cases)
+`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`. `helpers.ts` isolates each runtime on a temp dir. Coverage: 93.24% line / 79.35% branch / 87.95% funcs.
 
 ---
 

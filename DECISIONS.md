@@ -27,6 +27,15 @@ IMPACT: [what this affects downstream]
 ## Entries
 
 ### 2026-08-12
+TASK: P1g Brain Layer (PLAN 1g, all six items)
+DECISION: Built `src/brain/` — the composable LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92: complexity → cheap/standard/heavy tier, per-tier usage) + `PromptCache` (C93: content-addressed cross-agent prompt cache, first-call provider hits, repeats served from memory). `tune.ts` `TuneRegistry` (C94: versioned per-company/task model management, A/B via fraction, rollback) + `FallbackChain` (multi-provider fallback). `window.ts` `ContextWindow` (token-budget fit, keeps system msgs, drops/summarizes oldest; splitForInput). `index.ts` `BrainLayer` facade = fit → cache → router → fallback, all `LlmDriver`, exposing `usage()`. Wired: `PlutoRuntime.brain` injected into `Workforce` + `api.ts` (new `/api/brain/usage` + tune CRUD/rollback); `Workforce` constructor now takes an injectable `driver` defaulting to `makeDriver()` so existing callers/tests are untouched.
+FORAGED: Router/cache/registry/window as separate `LlmDriver`-conforming classes + a facade, vs one monolithic Brain class — chose composition so each primitive is independently testable and reusable.
+RATIONALE: PLAN 1g milestone = "all LLM calls go through router; swap providers without touching agent code". Modeling every piece as an `LlmDriver` lets the facade wrap them and lets `AgentLoop`/`Workforce` consume the brain behind the existing interface — no agent code changes.
+IMPACT: 11 new tests (test/brain.test.ts). Suite now 99/99 pass, coverage 93.24% line / 79.35% branch. Multi-provider fallback and provider-swap-without-agent-code milestone satisfied. Workforce `makeDriver()` default preserved → Phase 0/1 suites green unchanged.
+TRIED: Making the fine-tune registry auto-wire the current company/task inside `complete()` — impossible because the `LlmDriver` interface carries no company/task context, so the registry stays an explicit per-call service (`runtime.brain.registry`) instead. Kept the cleaner composition.
+ESCALATE: none.
+
+### 2026-08-12
 TASK: P1 Meta-Agent (PLAN 1c, agent part)
 DECISION: Built `src/meta/engine.ts` `MetaAgent` — gap detector (`detectGaps`: FAILED tasks with unfamiliar kinds + `Unknown tool:` traces, deduped against covered agents/capabilities), agent generator (`generateSpec`: LLM returns a JSON agent spec {name, role, prompt, tools, permissions, budget_usd, kpis, department_id}, deterministic default fallback), registration flow (`spawn`: createForCapability → set budget → registerCapability → remember + emit), introspection (`whatCanIDo`: capabilities, agents, tools, gaps, budgets) and kill switch (`kill`: retire + memory + event). Wired into `PlutoRuntime.meta` and 3 new API routes: `GET /meta/introspect`, `POST /meta/spawn`, `POST /meta/agents/:id/kill`.
 FORAGED: Sandbox tester + tool synthesizer deferred (they are the P1 open decision at PLAN.md L341-350: Docker vs Node worker vs subprocess); not needed for the agent half of P1. Used existing `AgentFactory` for isolated temp-dir creation rather than a new sandbox runtime.

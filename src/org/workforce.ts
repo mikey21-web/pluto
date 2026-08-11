@@ -1,5 +1,5 @@
 import { PlutoState } from '../kernel/state.ts';
-import type { Agent, Task, TaskState, ToolDef } from '../kernel/types.ts';
+import type { Agent, Task, TaskState, ToolDef, LlmDriver } from '../kernel/types.ts';
 import { makeDriver } from '../agents/llm.ts';
 import { AgentLoop, buildSystemPrompt } from '../agents/loop.ts';
 import { Observability } from '../plane/observability.ts';
@@ -46,12 +46,14 @@ export class Workforce {
   private tools: ToolDef[];
   private obs: Observability;
   private resources: ResourceEngine;
+  private driver: LlmDriver;
 
-  constructor(state: PlutoState, tools: ToolDef[]) {
+  constructor(state: PlutoState, tools: ToolDef[], driver: LlmDriver = makeDriver()) {
     this.state = state;
     this.tools = tools;
     this.obs = new Observability(state);
     this.resources = new ResourceEngine(state);
+    this.driver = driver;
   }
 
   submit(companyId: string, item: WorkItem): Task {
@@ -101,10 +103,10 @@ export class Workforce {
 
         const prompt = this.buildPrompt(task, company?.name ?? 'PLUTO', company?.mission ?? '');
         const loop = new AgentLoop(
-          makeDriver(),
+          this.driver,
           { company_id: task.company_id, agent_id: agent.id, task_id: task.id, state: this.state },
           this.allowedTools(agent),
-          this.obs.agentHook({ company_id: task.company_id, task_id: task.id, agent_id: agent.id, model: agent.model }),
+          this.obs.agentHook({ company_id: task.company_id, task_id: task.id, agent_id: agent.id, model: this.driver.model }),
           () => this.recallContext(task),
         );
 

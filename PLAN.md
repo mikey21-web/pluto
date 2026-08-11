@@ -400,13 +400,20 @@ These are recommendations I inserted earlier. They are NOT decisions. You must r
 ### 1g. Brain Layer (Month 1, foundational — precedes all agent work)
 LLM abstraction. Every agent invocation goes through this. Build first so nothing else has to be rewritten later.
 
-- [ ] **[C92 — Model Router]** Build routing engine (task complexity + cost + latency + provider availability → model choice)
-- [ ] **[C93 — Prompt Cache]** Build cross-agent prompt cache (shared expensive prompts, 5-10x cost reduction)
-- [ ] **[C94 — Fine-tune Registry]** Build custom model version management (per company/task, A/B testing, rollback)
-- [ ] Build Context Window Manager (splits large contexts, summarizes, streams)
-- [ ] Wire all agent runtime calls through Brain Layer
-- [ ] Multi-provider fallback (Claude → GPT → DeepSeek → local if all down)
-- [ ] **Milestone:** all LLM calls go through router; can swap providers without touching agent code
+- [x] **[C92 — Model Router]** Build routing engine (task complexity + cost + latency + provider availability → model choice)
+  - `src/brain/router.ts` `ModelRouter`: complexity (content + tool surface) → cheap/standard/heavy tier; tracks per-tier calls + cost. OUTCOME: 2 tests (2026-08-12)
+- [x] **[C93 — Prompt Cache]** Build cross-agent prompt cache (shared expensive prompts, 5-10x cost reduction)
+  - `src/brain/router.ts` `PromptCache`: content-addressed cache of identical prompts; first call hits provider, repeats served from memory. OUTCOME: 2 tests (2026-08-12)
+- [x] **[C94 — Fine-tune Registry]** Build custom model version management (per company/task, A/B testing, rollback)
+  - `src/brain/tune.ts` `TuneRegistry` + `FallbackChain` (multi-provider Claude→GPT→DeepSeek→local fallback). Registry: versioned per company+task, `active` bump, `fraction` A/B, `rollback()`. OUTCOME: 3 tests (2026-08-12)
+- [x] Build Context Window Manager (splits large contexts, summarizes, streams)
+  - `src/brain/window.ts` `ContextWindow`: token-budget `fit()` keeps system msgs, drops/​summarizes oldest; `splitForInput()`. OUTCOME: 2 tests (2026-08-12)
+- [x] Wire all agent runtime calls through Brain Layer
+  - `PlutoRuntime.brain` (`BrainLayer` facade: fit→cache→router→fallback) injected into `Workforce` (defaults to `makeDriver()` for back-compat); `src/workforce.ts` loop + `src/api.ts` use the brain. OUTCOME: full-suite green (2026-08-12)
+- [x] Multi-provider fallback (Claude → GPT → DeepSeek → local if all down)
+  - `src/brain/tune.ts` `FallbackChain`. OUTCOME: 1 test (2026-08-12)
+- [x] **Milestone:** all LLM calls go through router; can swap providers without touching agent code
+  - `BrainLayer` is an `LlmDriver`; agent code builds against that interface only, so providers swap without touching agent code. Test: `brain as LlmDriver is usable by AgentLoop-style composition`. OUTCOME: 2026-08-12
 
 ### 1a. World Model (Month 1-2) [P4 — World Model]
 Foundation for real decisions. Everything downstream depends on it.

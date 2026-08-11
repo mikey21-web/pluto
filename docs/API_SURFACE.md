@@ -38,6 +38,15 @@
 | POST | `/api/company/:id/meta/spawn` | Auto-create an agent for a gap: `{capability, reason?}` → LLM writes `AgentSpec` → register → returns `{agent_id, role, status, spec}`. |
 | POST | `/api/company/:id/meta/agents/:agentId/kill` | Kill switch — retires a spawned entity, records memory + event. 404 if not in this company. |
 
+## Brain layer (1g)
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/brain/usage` | Aggregate router (+cache) usage + total cost. |
+| GET | `/api/company/:id/brains/tunes` | Fine-tune registry rows for the company. |
+| POST | `/api/company/:id/brains/tunes` | Register a model version `{task_kind?, model?, active?, fraction?}`. |
+| POST | `/api/company/:id/brains/tunes/rollback` | `{task_kind?}` → roll `active` back one version. |
+
 ## Strategy (§16)
 
 | Method | Path | Notes |
