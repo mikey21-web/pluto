@@ -16,6 +16,7 @@ import { PolicyEngine } from './plane/policy.ts';
 import { MetaAgent } from './meta/engine.ts';
 import { BrainLayer } from './brain/index.ts';
 import { makeDriver } from './agents/llm.ts';
+import { WorldModel } from './world/engine.ts';
 
 /** Adapter seams — every external system (MCP, Temporal, Graphiti, Letta, OpenHands…) plugs in behind these. */
 export interface PlutoAdapters {
@@ -46,6 +47,7 @@ export interface PlutoRuntime {
   policies: PolicyEngine;
   meta: MetaAgent;
   brain: BrainLayer;
+  world: WorldModel;
   tools: ToolDef[];
   adapters: PlutoAdapters;
 }
@@ -64,6 +66,7 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
   for (const [k, fn] of defaultVerifiers()) verifier.register(k, fn);
   const bus = new EventBus(state);
   const brain = new BrainLayer({ defaultDriver: makeDriver() });
+  const world = new WorldModel(state.store);
   const workforce = new Workforce(state, tools, brain);
   const workGraph = new WorkGraphEngine(state);
   const fabric = new ExecutionFabric(state);
@@ -77,7 +80,7 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
 
   const runtime: PlutoRuntime = {
     state, company, workforce, governance, resources, verifier, learning, factory,
-    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, tools,
+    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, tools,
     adapters: {},
   };
 

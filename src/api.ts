@@ -22,6 +22,7 @@ import { describeOrg } from './plane/governance.ts';
 import { MetaAgent } from './meta/engine.ts';
 import { BrainLayer } from './brain/index.ts';
 import { makeDriver } from './agents/llm.ts';
+import { WorldModel } from './world/engine.ts';
 
 const DATA_DIR = process.env.PLUTO_DATA_DIR ?? './data';
 const PORT = Number(process.env.PLUTO_PORT ?? 4000);
@@ -49,6 +50,7 @@ const verifier = new VerificationEngine(state);
 const strategy = new StrategyEngine(state);
 const meta = new MetaAgent(state, { tools });
 const brain = new BrainLayer({ defaultDriver: makeDriver() });
+const world = new WorldModel(state.store);
 
 let lastSeq = 0;
 const sseClients = new Set<import('node:http').ServerResponse>();
@@ -356,6 +358,36 @@ app.post('/api/company/:id/brains/tunes', (req, res) => {
 app.post('/api/company/:id/brains/tunes/rollback', (req, res) => {
   const t = brain.registry.rollback(req.params.id, req.body?.task_kind ?? 'default');
   res.json({ active: t });
+});
+
+// ---- world model (1a P4)
+app.get('/api/company/:id/world/facts', (req, res) => {
+  const entity = req.query.entity as string | undefined;
+  res.json(entity ? world.whatIsTrueAbout(req.params.id, entity) : world.all(req.params.id));
+});
+app.post('/api/company/:id/world/facts', (req, res) => {
+  const f = world.assert({
+    company_id: req.params.id, entity: req.body?.entity ?? '', attribute: req.body?.attribute ?? '',
+    value: String(req.body?.value ?? ''), kind: req.body?.kind, source: req.body?.source, confidence: req.body?.confidence,
+  });
+  res.json(f);
+});
+app.post('/api/company/:id/world/mirrors', (req, res) => {
+  const m = world.syncMirror({ company_id: req.params.id, system: req.body?.system ?? '', entity: req.body?.entity ?? '', payload: req.body?.payload ?? {} });
+  res.json(m);
+});
+app.get('/api/company/:id/world/mirrors', (req, res) => {
+  res.json(world.mirrors(req.params.id));
+});
+app.get('/api/company/:id/world/mirrors/reconcile', (req, res) => {
+  res.json({ drifted: world.reconcile(req.params.id) });
+});
+app.get('/api/company/:id/world/snapshot', (req, res) => {
+  res.json({ key: world.snapshot(req.params.id) });
+});
+app.get('/api/company/:id/world/asof', (req, res) => {
+  const t = String(req.query.t ?? new Date().toISOString());
+  res.json({ facts: world.asOf(req.params.id, t), at: t });
 });
 
 // ---- static dashboard

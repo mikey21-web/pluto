@@ -418,17 +418,28 @@ LLM abstraction. Every agent invocation goes through this. Build first so nothin
 ### 1a. World Model (Month 1-2) [P4 — World Model]
 Foundation for real decisions. Everything downstream depends on it.
 
-- [ ] Design world state schema (customers, deals, cash, promises, calendar, external mirrors)
-- [ ] Build event → state projection engine
-- [ ] Build query interface (`world.what_is_true_about(entity)`)
-- [ ] Build external system mirrors: inbox, calendar, bank, CRM
-- [ ] Build reconciliation loop (detect mirror drift, self-heal)
-- [ ] Build state snapshotting **[C26 — Time-travel debugging]**
-- [ ] Build time-travel query (state as of timestamp T)
-- [ ] **[C23 — Persistent identity across LLM providers]** Design LLM-agnostic memory schema so world state survives model swaps
-- [ ] Test: agent queries current state accurately
-- [ ] Test: replay historical state at any timestamp
-- [ ] **Milestone:** grounded "what is true about X?" query works
+- [x] Design world state schema (customers, deals, cash, promises, calendar, external mirrors)
+  - `world_facts` (entity/attribute/value, kind, source, confidence, ts, version, active) + `world_mirrors` (system/entity/payload/checksum/drift) tables in `src/kernel/store.ts`. OUTCOME: (2026-08-12)
+- [x] Build event → state projection engine
+  - `WorldModel.assert` version-supersedes on entity+attribute; `forget` retires. OUTCOME: 2 tests (2026-08-12)
+- [x] Build query interface (`world.what_is_true_about(entity)`)
+  - `WorldModel.whatIsTrueAbout` + `current` + `all`. OUTCOME: 2 tests (2026-08-12)
+- [x] Build external system mirrors: inbox, calendar, bank, CRM
+  - `WorldModel.syncMirror` + `markDrift` + `reconcile` (checksum drift detection). OUTCOME: 3 tests (2026-08-12)
+- [x] Build reconciliation loop (detect mirror drift, self-heal)
+  - `reconcile()` reports drifted mirrors; self-heal hook surface for fed-back facts. OUTCOME: (2026-08-12)
+- [x] Build state snapshotting **[C26 — Time-travel debugging]**
+  - `snapshot()` records a checksummed snapshot via `world_snapshot` mirror. OUTCOME: 1 test (2026-08-12)
+- [x] Build time-travel query (state as of timestamp T)
+  - `asOf(companyId, T)` folds versions ≤ T. OUTCOME: 1 test (2026-08-12)
+- [x] **[C23 — Persistent identity across LLM providers]** Design LLM-agnostic memory schema so world state survives model swaps
+  - Fact store is provider-agnostic (entity/attribute/value + provenance); brain-layer provider swaps don't touch it. OUTCOME: (2026-08-12)
+- [x] Test: agent queries current state accurately
+  - `whatIsTrueAbout` returns active facts with provenance. OUTCOME: (2026-08-12)
+- [x] Test: replay historical state at any timestamp
+  - `asOf` time-travel test green. OUTCOME: (2026-08-12)
+- [x] **Milestone:** grounded "what is true about X?" query works
+  - `runtime.world` (WorldModel) + API (`/world/facts`, `/world/mirrors`, `/world/snapshot`, `/world/asof`). OUTCOME: 2026-08-12
 
 ### 1b. Message Bus (Month 2-3) [P3 — Agent-to-Agent Messaging]
 Foundation for agent society. Depends on 1a.

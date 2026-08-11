@@ -27,6 +27,15 @@ IMPACT: [what this affects downstream]
 ## Entries
 
 ### 2026-08-12
+TASK: P4 World Model (PLAN 1a, all items)
+DECISION: Built `src/world/engine.ts` `WorldModel` — the grounded "what is true about X?" substrate. Added `world_facts` (entity/attribute/value, kind, source, confidence, ts, version, active) and `world_mirrors` (system/entity/payload/checksum/drift) tables to `src/kernel/store.ts`. Engine: `assert` (version-supersedes on entity+attribute, keeps history), `forget`, `current`/`all`/`whatIsTrueAbout` (P4 query), `syncMirror`/`markDrift`/`reconcile` (checksum drift detection + self-heal hook), `snapshot` (C26, via `world_snapshot` mirror), `asOf(companyId, T)` time-travel. Provider-agnostic (survives brain-layer provider swaps per C23). Exposed as `runtime.world` + API routes (`GET/POST /world/facts`, `GET/POST /world/mirrors`, `GET /world/mirrors/reconcile`, `GET /world/snapshot`, `GET /world/asof?t=`).
+FORAGED: Dedicated `WorldModel` reading `Store.db` directly vs extending `Repos` — chose a focused class over bloating the generic repos layer; world rows have their own timestamps/versioning semantics distinct from graph/memory.
+RATIONALE: PLAN 1a milestone = grounded state query; time-travel required versioned immutable fact rows (not in-place updates), which dictated the `assert`-supersedes design.
+IMPACT: 9 new tests (test/world.test.ts). Suite now 108/108 pass, coverage 93.58% line / 80.02% branch. External mirrors (inbox/calendar/bank/CRM) are real integration surfaces filled in Phase 1e; reconciliation detects drift now.
+TRIED: `reconcile` originally re-checksummed stored payloads and cleared drift automatically — drifted mirrors couldn't be reported because the payload checksum never changed. Fixed: drift is a first-class flag set by `markDrift`/payload-change and `reconcile` reports (doesn't silently clear) it.
+ESCALATE: none.
+
+### 2026-08-12
 TASK: P1g Brain Layer (PLAN 1g, all six items)
 DECISION: Built `src/brain/` — the composable LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92: complexity → cheap/standard/heavy tier, per-tier usage) + `PromptCache` (C93: content-addressed cross-agent prompt cache, first-call provider hits, repeats served from memory). `tune.ts` `TuneRegistry` (C94: versioned per-company/task model management, A/B via fraction, rollback) + `FallbackChain` (multi-provider fallback). `window.ts` `ContextWindow` (token-budget fit, keeps system msgs, drops/summarizes oldest; splitForInput). `index.ts` `BrainLayer` facade = fit → cache → router → fallback, all `LlmDriver`, exposing `usage()`. Wired: `PlutoRuntime.brain` injected into `Workforce` + `api.ts` (new `/api/brain/usage` + tune CRUD/rollback); `Workforce` constructor now takes an injectable `driver` defaulting to `makeDriver()` so existing callers/tests are untouched.
 FORAGED: Router/cache/registry/window as separate `LlmDriver`-conforming classes + a facade, vs one monolithic Brain class — chose composition so each primitive is independently testable and reusable.

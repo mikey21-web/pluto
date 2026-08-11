@@ -119,6 +119,15 @@ CREATE TABLE IF NOT EXISTS jobs (
   status TEXT, attempts INTEGER, max_attempts INTEGER, state TEXT,
   last_heartbeat TEXT, scheduled_at TEXT, started_at TEXT, finished_at TEXT, error TEXT
 );
+CREATE TABLE IF NOT EXISTS world_facts (
+  id TEXT PRIMARY KEY, company_id TEXT, entity TEXT, attribute TEXT,
+  value TEXT, kind TEXT, source TEXT, confidence REAL, ts TEXT,
+  version INTEGER, active INTEGER
+);
+CREATE TABLE IF NOT EXISTS world_mirrors (
+  id TEXT PRIMARY KEY, company_id TEXT, system TEXT, entity TEXT,
+  payload TEXT, checksum TEXT, status TEXT, last_synced TEXT, drift INTEGER
+);
 CREATE INDEX IF NOT EXISTS idx_events_company ON events(company_id, seq);
 CREATE INDEX IF NOT EXISTS idx_events_type ON events(company_id, type);
 CREATE INDEX IF NOT EXISTS idx_tasks_company ON tasks(company_id, status);

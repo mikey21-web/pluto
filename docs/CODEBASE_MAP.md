@@ -89,6 +89,10 @@ Graph-based `CompanyIntelligence`: `factsAbout`, `brief`, `learnCustomer`. Plug-
 LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 complexity routing cheap/standard/heavy) + `PromptCache` (C93 content-addressed cross-agent cache); `tune.ts` `TuneRegistry` (C94 versioned/A-B/rollback) + `FallbackChain` (multi-provider fallback); `window.ts` `ContextWindow` (token-budget fit/split); `index.ts` `BrainLayer` facade (fit→cache→router→fallback, `usage()`). Exposed as `runtime.brain` and injected into `Workforce`/`api.ts`.
 - `ModelRouter` `router.ts:34` · `PromptCache` `router.ts:86` · `FallbackChain` `tune.ts:75` · `TuneRegistry` `tune.ts:22` · `ContextWindow` `window.ts:11` · `BrainLayer` `index.ts:24`
 
+### 2.12b World Model — `src/world/engine.ts` (P4, PLAN 1a)
+`WorldModel`: versioned fact store (`assert` supersedes on entity+attribute, keeps history), query interface (`whatIsTrueAbout`/`current`/`all`), external mirrors with checksum drift detection (`syncMirror`/`markDrift`/`reconcile`), snapshotting (C26) and time-travel (`asOf`). Tables `world_facts`/`world_mirrors` in `store.ts`. Exposed as `runtime.world` + `/world/*` API.
+- `assert` `engine.ts:50` · `whatIsTrueAbout` `:108` · `syncMirror` `:124` · `reconcile` `:168` · `snapshot` `:196` · `asOf` `:212`
+
 ### 2.13 Runtime Composition — `src/runtime.ts`
 `createRuntime` wires all subsystems + adapter seams (`PlutoAdapters`) + default bus wiring (task.failed → learning).
 - `createRuntime` `runtime.ts:52` · `formOrganization` `:97` · `PlutoAdapters` `:18` · `meta` `:44`
@@ -97,14 +101,14 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 | File | What |
 |---|---|
 | `demo.ts` | End-to-end bootstrap demo (company → org → workday → approval → learn → verify → strategy → workgraph → policy → capability → intel) |
-| `api.ts` | Express + SSE. ~43 REST endpoints across companies/snapshot/capabilities/strategy/workflow/policies/risks/messages/jobs/intel/projects/artifacts/objectives/tasks/events/approvals/resources/memory/decisions/learning/traces/agents + meta (introspect/spawn/kill). Static dashboard. |
+| `api.ts` | Express + SSE. ~55 REST endpoints across companies/snapshot/capabilities/strategy/workflow/policies/risks/messages/jobs/intel/projects/artifacts/objectives/tasks/events/approvals/resources/memory/decisions/learning/traces/agents + meta (introspect/spawn/kill) + brain (usage/tunes) + world (facts/mirrors/snapshot/asof). Static dashboard. |
 | `operate.ts` | Continuous Operator daemon: drains QUEUED/PENDING tasks across companies, durable restarts |
 
 ### 2.15 Dashboard — `apps/dashboard/src/main.ts`
 945-line SPA (Command Center). Renders company switcher, KPIs, org graph (SVG), objectives, approvals, and a 17-view panel (`renderView` main.ts:205; nav :754). `dist/app.js` is prebuilt via esbuild.
 
-### 2.16 Tests — `test/` (17 files, 99 cases)
-`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`. `helpers.ts` isolates each runtime on a temp dir. Coverage: 93.24% line / 79.35% branch / 87.95% funcs.
+### 2.16 Tests — `test/` (18 files, 108 cases)
+`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`. `helpers.ts` isolates each runtime on a temp dir. Coverage: 93.58% line / 80.02% branch / 88.45% funcs.
 
 ---
 
