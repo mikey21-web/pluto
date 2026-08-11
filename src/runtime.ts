@@ -23,6 +23,7 @@ import { CanaryDeploy } from './meta/canary.ts';
 import { ImmuneSystem } from './immune/engine.ts';
 import { ForageEngine } from './forage/engine.ts';
 import { RealityInterface, buildRealityInterface } from './reality/engine.ts';
+import { Sovereign } from './sovereign/engine.ts';
 
 /** Adapter seams — every external system (MCP, Temporal, Graphiti, Letta, OpenHands…) plugs in behind these. */
 export interface PlutoAdapters {
@@ -60,6 +61,7 @@ export interface PlutoRuntime {
   immune: ImmuneSystem;
   forage: ForageEngine;
   reality: RealityInterface;
+  sovereign: Sovereign;
   tools: ToolDef[];
   adapters: PlutoAdapters;
 }
@@ -95,13 +97,15 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
   const intel = new CompanyIntelligence(state);
   const policies = new PolicyEngine(state);
   const meta = new MetaAgent(state, { tools, forage });
+  const sovereign = new Sovereign(state);
 
   resources.defaults(company.id);
   seedCapabilities(state, company.id);
+  sovereign.addOwner({ company_id: company.id, name: 'Civilization', role: 'sovereign', email: 'owner@pluto.local', authority: ['all'] });
 
   const runtime: PlutoRuntime = {
     state, company, workforce, governance, resources, verifier, learning, factory,
-    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, messages, synthesizer, canary, immune, forage, reality, tools,
+    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, messages, synthesizer, canary, immune, forage, reality, sovereign, tools,
     adapters: {},
   };
 

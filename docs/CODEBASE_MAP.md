@@ -113,6 +113,10 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 `RealityInterface` + `buildRealityInterface`: every commercial channel (email, whatsapp, telegram, voice C17, calendar, payments, banking, signing, ecommerce, ads, contracts) is an `ExternalProvider` that `sync`s ground truth into the World Model mirror (`reality.<kind>` system + `status` fact), `ingest`s inbound, and `route`s outbound. Simulated providers run the full commercial cycle with zero credentials; real SDKs (Stripe, Twilio, DocuSign, Plaid, Cal.com…) swap in behind the `ExternalProvider` seam. `commercialCycleSteps` proves the entity operates every channel. Exposed as `runtime.reality` + `/reality/*` API.
 - `syncAll` `engine.ts:96` · `ingest` `:106` · `route` `:118` · `buildRealityInterface` `:186` · `commercialCycleSteps` `:220`
 
+### 2.12h Sovereign Layer — `src/sovereign/engine.ts` (P2, PLAN 2a, C29/C50)
+`Sovereign` — the portfolio-level governor over every company in one store. Company factory (`spawnCompany` = `repos.createCompany` + org form + budgets + policies + default owner; repurposes `OrgEngine`/`ResourceEngine`/`PolicyEngine`), cross-company memory (`shareLesson`/`lessons` on `__global__`), per-company kill switch (`haltCompany`/`resumeCompany`/`isHalted`), global kill switch (`haltAll` + `kill_switch_log` table), per-action rollback registry (`registerRollback`/`applyRollback`/`rollbacks` over `rollback_actions`), C29 Deadman's Switch (`deadmanCheck` → read-only after 7-day owner silence; `heartbeat` restores), Sovereign digest (`digest`: daily owner report of tasks/spend/approvals/risks/events/halted), multi-layer approval routing (`routeApproval` auto/gated/human-only via `repos.createApproval`), C50 multi-owner model (`sovereign_owners` + `addOwner`/`owners`; full multi-person impl deferred to Phase 4k). Exposed as `runtime.sovereign` + `/sovereign/*` API. New schema: `sovereign_owners`, `kill_switch_log`, `rollback_actions`.
+- `spawnCompany` `engine.ts:45` · `haltCompany` `:82` · `haltAll` `:107` · `registerRollback` `:119` · `deadmanCheck` `:153` · `digest` `:173` · `routeApproval` `:197` · `addOwner` `:215`
+
 ### 2.13 Runtime Composition — `src/runtime.ts`
 `createRuntime` wires all subsystems + adapter seams (`PlutoAdapters`) + default bus wiring (task.failed → learning).
 - `createRuntime` `runtime.ts:52` · `formOrganization` `:97` · `PlutoAdapters` `:18` · `meta` `:44`
@@ -128,7 +132,14 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 945-line SPA (Command Center). Renders company switcher, KPIs, org graph (SVG), objectives, approvals, and a 17-view panel (`renderView` main.ts:205; nav :754). `dist/app.js` is prebuilt via esbuild.
 
 ### 2.17 Tests — `test/` (25 files, 161 cases)
-`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`, `bus`, `synthesizer`, `canary`, `immune`, `forage`, `reality`, `phase1_gate`. `helpers.ts` isolates each runtime on a temp dir. Coverage: 94.89% line / 80.34% branch / 89.09% funcs.
+`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, 
+`governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`, 
+`bus`, `synthesizer`, `canary`, `immune`, `forage`, `reality`, `sovereign`, `phase1_gate`. `helpers.ts` isolates 
+each runtime on a 
+temp dir. Coverage: 
+95.37% line 
+/ 80.58% branch 
+/ 90.19% funcs.
 
 ---
 
@@ -157,7 +168,7 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 - **Execution & Control** (durable execution, retry, sandboxed fs, verification, governance, budget, observability): mostly ✅ `work/`, `plane/`, `verify/`
 - **Tool Fabric** (registry + runtime synthesis + versioning): ✅ `tools/`, `meta/synthesizer.ts`, `capability/factory.ts`
 - **Reality Interface** (11 commercial channels + http/browser/fs gateway): ✅ `src/reality/engine.ts`
-- **Environmental note:** ARCHITECTURE.md diagrams assume `world/`, `bus/`, `meta/`, `immune/`, `sovereign/`, `brain/` — all landed in Phase 1 (world, bus, meta, immune, brain, forage, reality); `sovereign/` remains (Phase 2).
+ - **Environmental note:** ARCHITECTURE.md diagrams assume `world/`, `bus/`, `meta/`, `immune/`, `sovereign/`, `brain/` - all landed (world, bus, meta, immune, brain, forage, reality, sovereign).
 
 ---
 

@@ -15,6 +15,13 @@ IMPACT: [what this affects downstream]
 ```
 
 ### 2026-08-12
+TASK: Phase 2a — Sovereign Layer (C29 Deadman's Switch, C50 Multi-owner scaffolding)
+DECISION: Built `src/sovereign/engine.ts` `Sovereign` — the portfolio-level governor. Delivered: company factory (`spawnCompany` = createCompany + org + budgets + policies + default owner; repurposes OrgEngine/ResourceEngine/PolicyEngine), cross-company memory (`shareLesson`/`lessons` on `__global__`), per-company kill switch (`haltCompany`/`resumeCompany`/`isHalted`), global kill switch (`haltAll` + `kill_switch_log`), per-action rollback registry (`registerRollback`/`applyRollback`/`rollbacks` over new `rollback_actions` table), C29 Deadman's Switch (`deadmanCheck` → read-only after 7-day owner silence; `heartbeat` restores), Sovereign digest (daily owner report: tasks/spend/approvals/risks/events/halted), multi-layer approval routing (`routeApproval` auto/gated/human-only), C50 multi-owner model schema (`sovereign_owners` + `addOwner`/`owners`; full multi-person impl deferred to Phase 4k). Wired `runtime.sovereign` + API routes (`/api/sovereign/*`, `/api/company/:id/sovereign/*`, rollback routes).
+FORAGED: governance/approval libs — rejected, self-contained; reused in-repo OrgEngine/ResourceEngine/PolicyEngine + `repos.createApproval`. New schema only (`sovereign_owners`, `kill_switch_log`, `rollback_actions`), zero new runtime deps.
+RATIONALE: The Sovereign is a portfolio coordinator over many companies in one store; repurposing the existing org/resource/policy engines keeps spawn logic honest and DRY while the new kill/rollback/deadman/digest/owner tables give the human ultimate authority with graceful automatic protection.
+IMPACT: Every entity now spawns with budgets+policies+an owner; the human can halt (per-company or global), roll back any recorded action, get daily digest, route approvals by risk tier, and is protected by the deadman's rule. 9 tests added; 170 passing, coverage 95.37/80.58/90.19. Next: 2b Governance Additions.
+
+### 2026-08-12
 TASK: Phase 1d — Immune System (#11 Silent Competence) + C5 Adversary
 DECISION: Built `src/immune/engine.ts` `ImmuneSystem`: health monitoring (agentHealth/toolHealth over tasks+traces), failure classifier (transient/config/logic/missing/external), code-fix via ToolSynthesizer revalidation, test-runner (synthetic + historical replay), gradual promotion reusing CanaryDeploy, audit log (RepairLog), human-notification gating, and C5 Adversary (`adversaryRun` red-teams tool surfaces). Wired `runtime.immune` + 10 API endpoints.
 FORAGED: health-monitor libs (checkly/uptime/healthchecks) — reject, self-contained; reused in-repo ToolSynthesizer sandbox + CanaryDeploy instead of new deps.

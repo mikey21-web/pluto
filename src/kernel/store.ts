@@ -134,6 +134,22 @@ CREATE TABLE IF NOT EXISTS foraged (
   stars INTEGER, updated_at TEXT, tags TEXT, status TEXT, seed TEXT,
   score REAL, notes TEXT, foraged_at TEXT
 );
+CREATE TABLE IF NOT EXISTS sovereign_owners (
+  id TEXT PRIMARY KEY, company_id TEXT, name TEXT, role TEXT,
+  email TEXT, authority TEXT, last_active TEXT, status TEXT
+);
+CREATE TABLE IF NOT EXISTS kill_switch_log (
+  id TEXT PRIMARY KEY, company_id TEXT, scope TEXT, action TEXT,
+  reason TEXT, ts TEXT, by TEXT, active INTEGER
+);
+CREATE TABLE IF NOT EXISTS rollback_actions (
+  id TEXT PRIMARY KEY, company_id TEXT, action_type TEXT, action_id TEXT,
+  reverse TEXT, status TEXT, ts TEXT, reversed_at TEXT
+);
+CREATE TABLE IF NOT EXISTS protected_core (
+  id TEXT PRIMARY KEY, company_id TEXT, path TEXT, checksum TEXT,
+  reason TEXT, anchored_at TEXT
+);
 CREATE INDEX IF NOT EXISTS idx_events_company ON events(company_id, seq);
 CREATE INDEX IF NOT EXISTS idx_events_type ON events(company_id, type);
 CREATE INDEX IF NOT EXISTS idx_tasks_company ON tasks(company_id, status);

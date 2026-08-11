@@ -559,15 +559,16 @@ Real commercial channels for the civilization.
 ## PHASE 2 — Beachhead: Sovereign + Entity #1 (3 months)
 
 ### 2a. Sovereign Layer
-- [ ] Build company factory (spawn entities from mission templates)
-- [ ] Build cross-company memory (shared learnings across entities)
-- [ ] Build per-company kill switches (`pluto halt --company=X`)
-- [ ] Build global kill switch (`pluto halt`)
-- [ ] Build per-action rollback registry (each action type → codified reverse)
-- [ ] **[C29 — Deadman's Switch]** Build deadman's switch (7-day owner silence → read-only mode)
-- [ ] Build Sovereign digest (daily report to human owner)
-- [ ] Build multi-layer approval routing (auto / gated / human-only)
-- [ ] **[C50 — Multi-owner scaffolding]** Design owner model to support multiple humans (implementation deferred to Phase 4, but schema ready)
+- [x] Build company factory (spawn entities from mission templates) — `Sovereign.spawnCompany` via `createCompany` + org + budgets + policies + default owner
+- [x] Build cross-company memory (shared learnings across entities) — `shareLesson` / `lessons` on `__global__`
+- [x] Build per-company kill switches (`pluto halt --company=X`) — `haltCompany` / `resumeCompany` / `isHalted`
+- [x] Build global kill switch (`pluto halt`) — `haltAll` + kill_switch_log
+- [x] Build per-action rollback registry (each action type → codified reverse) — `registerRollback` / `applyRollback` / `rollbacks`
+- [x] **[C29 — Deadman's Switch]** Build deadman's switch (7-day owner silence → read-only mode) — `deadmanCheck` + `heartbeat`
+- [x] Build Sovereign digest (daily report to human owner) — `digest` (tasks/spend/approvals/risks/events)
+- [x] Build multi-layer approval routing (auto / gated / human-only) — `routeApproval`
+- [x] **[C50 — Multi-owner scaffolding]** Design owner model to support multiple humans (implementation deferred to Phase 4, but schema ready) — `sovereign_owners` + `addOwner`/`owners`
+- **OUTCOME:** Sovereign Layer delivered as `Sovereign` (src/sovereign/engine.ts), repurposing existing `OrgEngine`/`ResourceEngine`/`PolicyEngine` to form companies from mission templates. 9 new tests (test/sovereign.test.ts); full suite 170 passing, coverage 95.37% line / 80.58% branch / 90.19% funcs. API routes `/api/sovereign/*` + `/api/company/:id/sovereign/*` + rollback routes added.
 
 ### 2b. Governance Additions
 - [ ] **[C27 — The Constitution]** Write civilization Constitution + amendment protocol

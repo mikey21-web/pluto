@@ -29,6 +29,7 @@ import { CanaryDeploy } from './meta/canary.ts';
 import { ImmuneSystem } from './immune/engine.ts';
 import { ForageEngine } from './forage/engine.ts';
 import { buildRealityInterface } from './reality/engine.ts';
+import { Sovereign } from './sovereign/engine.ts';
 
 const DATA_DIR = process.env.PLUTO_DATA_DIR ?? './data';
 const PORT = Number(process.env.PLUTO_PORT ?? 4000);
@@ -66,6 +67,7 @@ const forage = new ForageEngine({
   registerVersion: (companyId, name) => capabilities.registerVersion(companyId, name),
 });
 const reality = buildRealityInterface(world, { bus: messages });
+const sovereign = new Sovereign(state);
 
 let lastSeq = 0;
 const sseClients = new Set<import('node:http').ServerResponse>();
@@ -553,6 +555,67 @@ app.post('/api/company/:id/reality/route', (req, res) => {
 });
 app.get('/api/company/:id/reality/mirrors', (req, res) => {
   res.json(world.mirrors(req.params.id));
+});
+
+// ---- sovereign layer (2a)
+app.post('/api/sovereign/companies', (req, res) => {
+  res.json(sovereign.spawnCompany({ name: req.body?.name ?? 'NewCo', mission: req.body?.mission ?? '' }));
+});
+app.get('/api/sovereign/companies', (req, res) => {
+  res.json(sovereign.companies());
+});
+app.post('/api/sovereign/lessons', (req, res) => {
+  sovereign.shareLesson({ content: req.body?.content ?? '', source: req.body?.source, tags: req.body?.tags });
+  res.json({ ok: true });
+});
+app.get('/api/sovereign/lessons', (req, res) => {
+  res.json(sovereign.lessons());
+});
+app.post('/api/company/:id/sovereign/halt', (req, res) => {
+  sovereign.haltCompany(req.params.id, req.body?.reason, req.body?.by);
+  res.json({ ok: true, halted: sovereign.isHalted(req.params.id) });
+});
+app.post('/api/company/:id/sovereign/resume', (req, res) => {
+  sovereign.resumeCompany(req.params.id, req.body?.by);
+  res.json({ ok: true });
+});
+app.post('/api/sovereign/halt-all', (req, res) => {
+  sovereign.haltAll(req.body?.reason, req.body?.by);
+  res.json({ ok: true });
+});
+app.post('/api/company/:id/rollback/register', (req, res) => {
+  res.json(sovereign.registerRollback({
+    company_id: req.params.id, action_type: req.body?.action_type ?? '', action_id: req.body?.action_id ?? '', reverse: req.body?.reverse ?? '',
+  }));
+});
+app.post('/api/rollback/:id/apply', (req, res) => {
+  res.json({ ok: sovereign.applyRollback(req.params.id) });
+});
+app.get('/api/company/:id/rollbacks', (req, res) => {
+  res.json(sovereign.rollbacks(req.params.id));
+});
+app.post('/api/company/:id/sovereign/heartbeat', (req, res) => {
+  sovereign.heartbeat(req.params.id, req.body?.owner_id ?? '');
+  res.json({ ok: true });
+});
+app.post('/api/company/:id/sovereign/deadman', (req, res) => {
+  res.json({ status: sovereign.deadmanCheck(req.params.id, req.body?.days ?? 7) });
+});
+app.get('/api/company/:id/sovereign/digest', (req, res) => {
+  res.json(sovereign.digest(req.params.id));
+});
+app.post('/api/company/:id/sovereign/approve', (req, res) => {
+  res.json(sovereign.routeApproval({
+    company_id: req.params.id, action: req.body?.action ?? '', summary: req.body?.summary ?? '', cost_usd: req.body?.cost_usd ?? 0, tier: req.body?.tier ?? 'gated',
+  }));
+});
+app.post('/api/company/:id/sovereign/owners', (req, res) => {
+  res.json(sovereign.addOwner({
+    company_id: req.params.id, name: req.body?.name ?? 'Owner', role: req.body?.role ?? 'co-owner', email: req.body?.email ?? '', authority: req.body?.authority ?? [],
+  }));
+});
+app.get('/api/company/:id/sovereign/owners', (req, res) => {
+  res.json(sovereign.owners(req.params.id));
 });
 
 // ---- static dashboard

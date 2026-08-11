@@ -114,6 +114,27 @@
 | POST | `/api/company/:id/reality/route` | Outbound action `{channel, op, payload?}` → routed to the provider. |
 | GET | `/api/company/:id/reality/mirrors` | World mirrors for all reality channels. |
 
+## Sovereign Layer (2a)
+
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/api/sovereign/companies` | Spawn a new company `{name, mission}` (company factory). |
+| GET | `/api/sovereign/companies` | List all companies under the civilization. |
+| POST | `/api/sovereign/lessons` | Record a cross-company lesson `{content, source?, tags?}`. |
+| GET | `/api/sovereign/lessons` | Query shared cross-company memory. |
+| POST | `/api/company/:id/sovereign/halt` | Per-company kill switch `{reason?, by?}` → status halted, agents inactive. |
+| POST | `/api/company/:id/sovereign/resume` | Resume a halted company. |
+| POST | `/api/sovereign/halt-all` | Global kill switch `{reason?, by?}`. |
+| POST | `/api/company/:id/rollback/register` | Register per-action rollback `{action_type, action_id, reverse}`. |
+| POST | `/api/rollback/:id/apply` | Apply a registered rollback. |
+| GET | `/api/company/:id/rollbacks` | List rollback registry for a company. |
+| POST | `/api/company/:id/sovereign/heartbeat` | Owner heartbeat `{owner_id}` (resets deadman's clock). |
+| POST | `/api/company/:id/sovereign/deadman` | Run deadman check `{days?=7}` → `{status: active|read-only}`. |
+| GET | `/api/company/:id/sovereign/digest` | Daily owner digest: tasks/spend/approvals/risks/events/halted. |
+| POST | `/api/company/:id/sovereign/approve` | Route approval `{action, summary, cost_usd, tier: auto|gated|human-only}`. |
+| POST | `/api/company/:id/sovereign/owners` | Add an owner `{name, role, email?, authority[]}` (C50 multi-owner). |
+| GET | `/api/company/:id/sovereign/owners` | List owners for a company. |
+
 ## Strategy (§16)
 
 | Method | Path | Notes |

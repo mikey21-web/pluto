@@ -621,4 +621,47 @@ export class Repos {
     this.store.db.prepare('UPDATE jobs SET task_id=?,workflow_id=?,status=?,attempts=?,max_attempts=?,state=?,last_heartbeat=?,started_at=?,finished_at=?,error=? WHERE id=?')
       .run(j.task_id, j.workflow_id, j.status, j.attempts, j.max_attempts, json(j.state), j.last_heartbeat, j.started_at, j.finished_at, j.error, j.id);
   }
+
+  // ---- sovereign layer (2a)
+  saveOwner(c: { id: string; company_id: string; name: string; role: string; email: string; authority: string[]; last_active: string; status: string }): void {
+    this.store.db.prepare('INSERT INTO sovereign_owners (id,company_id,name,role,email,authority,last_active,status) VALUES (?,?,?,?,?,?,?,?)')
+      .run(c.id, c.company_id, c.name, c.role, c.email, json(c.authority), c.last_active, c.status);
+  }
+  owners(companyId: string): any[] {
+    return this.store.db.prepare('SELECT * FROM sovereign_owners WHERE company_id=?').all(companyId).map(r => ({ ...r, authority: parse(r.authority as string, []) }));
+  }
+  owner(companyId: string, ownerId: string): any | null {
+    const r: any = this.store.db.prepare('SELECT * FROM sovereign_owners WHERE company_id=? AND id=?').get(companyId, ownerId);
+    return r ? { ...r, authority: parse(r.authority, []) } : null;
+  }
+  touchOwner(companyId: string, ownerId: string): void {
+    this.store.db.prepare('UPDATE sovereign_owners SET last_active=?,status=? WHERE company_id=? AND id=?').run(now(), 'active', companyId, ownerId);
+  }
+
+  storeKillLog(c: { id: string; company_id: string; scope: string; action: string; reason: string; ts: string; by: string; active: number }): void {
+    this.store.db.prepare('INSERT INTO kill_switch_log (id,company_id,scope,action,reason,ts,by,active) VALUES (?,?,?,?,?,?,?,?)')
+      .run(c.id, c.company_id, c.scope, c.action, c.reason, c.ts, c.by, c.active);
+  }
+  killLog(companyId?: string): any[] {
+    return companyId
+      ? this.store.db.prepare('SELECT * FROM kill_switch_log WHERE company_id=? ORDER BY ts DESC').all(companyId)
+      : this.store.db.prepare('SELECT * FROM kill_switch_log ORDER BY ts DESC').all();
+  }
+
+  saveRollback(c: { id: string; company_id: string; action_type: string; action_id: string; reverse: string; status: string; ts: string; reversed_at: string | null }): void {
+    this.store.db.prepare('INSERT INTO rollback_actions (id,company_id,action_type,action_id,reverse,status,ts,reversed_at) VALUES (?,?,?,?,?,?,?,?)')
+      .run(c.id, c.company_id, c.action_type, c.action_id, c.reverse, c.status, c.ts, c.reversed_at);
+  }
+  rollback(id: string): any | null {
+    const r: any = this.store.db.prepare('SELECT * FROM rollback_actions WHERE id=?').get(id);
+    return r ?? null;
+  }
+  rollbacks(companyId: string | null): any[] {
+    return companyId
+      ? this.store.db.prepare('SELECT * FROM rollback_actions WHERE company_id=? ORDER BY ts DESC').all(companyId)
+      : this.store.db.prepare('SELECT * FROM rollback_actions ORDER BY ts DESC').all();
+  }
+  markRollbackApplied(id: string): void {
+    this.store.db.prepare('UPDATE rollback_actions SET status=?,reversed_at=? WHERE id=?').run('applied', now(), id);
+  }
 }
