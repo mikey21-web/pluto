@@ -191,6 +191,22 @@
 | GET | `/api/company/:id/grace/whimsy/ledger` | Whimsy ledger (budget, spent, acts). |
 | GET | `/api/company/:id/grace/status` | Aggregate status (fugue, offswitch, rehearsals, whimsy). |
 
+## 90-Day Operations (2e)
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/company/:id/ops/status` | Current phase, day, logged counts. |
+| GET | `/api/company/:id/ops/day` | Current day + phase. |
+| GET | `/api/company/:id/ops/phase-summary` | Phase + days in/remaining. |
+| POST | `/api/company/:id/ops/day` | Record daily entry `{decisions_logged, escalations, human_reviews, leads_qualified, meetings_booked, deals_closed, rollback_incidents, spend_usd, revenue_usd, notes?}`. |
+| POST | `/api/company/:id/ops/day/auto` | Auto-record day from company state. |
+| GET | `/api/company/:id/ops/days` | List all recorded days. |
+| POST | `/api/company/:id/ops/week` | Record weekly retro `{retro_notes}`. |
+| GET | `/api/company/:id/ops/weeks` | List weeks. |
+| POST | `/api/company/:id/ops/month` | Record monthly audit `{audit_notes, unit_economics?}`. |
+| GET | `/api/company/:id/ops/months` | List months. |
+| GET | `/api/company/:id/ops/gate` | Evaluate Phase 2 gate criteria (pass/fail + per-criterion). |
+
 ## Strategy (§16)
 
 | Method | Path | Notes |

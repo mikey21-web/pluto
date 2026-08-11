@@ -155,7 +155,7 @@ export class GraceRehearsal {
       human_feedback, status: 'simulated', ts: now(),
     };
     this.rehearsals.push(rec);
-    this.state.emit(c.company_id, 'grace.rehearsal.planned', rec.id, 'system', { action: c.action, sandbox_ok: test.ok });
+    this.state.emit(c.company_id, 'grace.rehearsal.planned', rec.id, 'system', { action: c.action, sandbox_ok: test.passed });
     return rec;
   }
 

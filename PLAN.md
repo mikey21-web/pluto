@@ -602,9 +602,14 @@ Real commercial channels for the civilization.
 - **OUTCOME:** Grace & Rehearsal delivered as `GraceRehearsal` (src/grace/engine.ts). 5 new tests (test/grace.test.ts); full suite 191 passing, coverage 95.78% line / 80.48% branch / 91.09% funcs. Fugue Mode suspends non-essential agents; Off-Switch gives 60s graceful window; Rehearsal Studio runs sandbox+simulated-human before real execution; Whimsy Budget reserves capped delight budget.
 
 ### 2e. 90-Day Operations
-- [ ] Days 1-30: supervised operation (every decision logged, most escalated, human reviews all)
-- [ ] Days 31-60: trust-building operation (auto-apply learning within v1 permissions)
-- [ ] Days 61-90: autonomous operation (periodic audit only)
+- [x] Days 1-30: supervised operation (every decision logged, most escalated, human reviews all) — phase tracked, `recordDay` captures decisions/escalations/human_reviews
+- [x] Days 31-60: trust-building operation (auto-apply learning within v1 permissions) — phase tracked
+- [x] Days 61-90: autonomous operation (periodic audit only) — phase tracked
+- [x] Daily cadence (`recordDay` + `autoRecordDay` from company state)
+- [x] Weekly cadence (`recordWeek` aggregates 7 days + retro notes)
+- [x] Monthly cadence (`recordMonth` aggregates ~30 days + unit economics CAC/LTV)
+- [x] Phase 2 gate checker (`evaluateGate`: 100+ leads, 20+ meetings, 3+ deals, zero rollbacks 61-90, client satisfied, unit economics positive)
+- **OUTCOME:** 90-Day Ops delivered as `OpsRuntime` (src/ops/engine.ts). 7 new tests (test/ops.test.ts); full suite 198 passing, coverage 95.72% line / 80.55% branch / 90.87% funcs. Three-phase tracker (supervised/trust-building/autonomous), daily/weekly/monthly cadences with unit economics, gate evaluator with all 6 criteria.
 
 ### PHASE 2 GATE
 - [ ] 100+ leads qualified autonomously

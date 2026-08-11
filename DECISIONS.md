@@ -15,6 +15,13 @@ IMPACT: [what this affects downstream]
 ```
 
 ### 2026-08-12
+TASK: Phase 2e — 90-Day Operations
+DECISION: Built `src/ops/engine.ts` `OpsRuntime`. Delivered: 90-day phase tracker (Days 1-30 supervised / 31-60 trust-building / 61-90 autonomous / 90+ gate via `currentDay`/`phaseSummary`), daily cadence (`recordDay`/`autoRecordDay` pulling leads/meetings/deals/rollbacks/spend/revenue from company state), weekly cadence (`recordWeek` aggregates 7 days + retro notes), monthly cadence (`recordMonth` aggregates ~30 days + unit economics CAC/LTV/positive), Phase 2 gate evaluator (`evaluateGate` — 100+ leads, 20+ meetings, 3+ deals, zero rollbacks 61-90, client.satisfied event, unit economics positive). Wired `runtime.ops`.
+FORAGED: ops-tracking / OKR / cadence tools — rejected; a lightweight in-process tracker with deterministic phase math + repo-sourced metrics keeps zero deps and full testability.
+RATIONALE: The civilization needs an internal operational clock — not a dashboard — that drives phase transitions and gate evaluation automatically. The three phases + cadences + gate map 1:1 to PLAN 2e and give the human a single source of truth for "where are we in the 90 days?".
+IMPACT: The civilization now has a 90-day operational clock, phase-appropriate behavior (supervised → trust-building → autonomous), cadenced retros, and a pass/fail gate. 7 tests added; 198 passing, coverage 95.72/80.55/90.87. Next: Phase 2 gate.
+
+### 2026-08-12
 TASK: Phase 2d — Grace & Rehearsal (C112, C113, C114, C115)
 DECISION: Built `src/grace/engine.ts` `GraceRehearsal`. Delivered: C112 Fugue Mode (`enterFugue`/`exitFugue` — suspends all non-Finance/Sovereign agents, logs reason, emits event; `exitFugue` reactivates), C113 Off-Switch Delay (`initiateOffSwitch`/`tickOffSwitch`/`cancelOffSwitch` — 60-second countdown window for final messages/save/close), C114 Rehearsal Studio (`planRehearsal` synthesizes a tool via ToolSynthesizer, runs sandbox test with simulated-human feedback, then requires human `approveRehearsal` before `executeRehearsal`/`rejectRehearsal`), C115 Whimsy Budget (`initWhimsy` reserves 1-2% of activity budget; `spendWhimsy` spends on joy-marked acts within cap). Wired `runtime.grace`.
 FORAGED: chaos-engineering / graceful-shutdown libs — rejected; in-process 60s countdown + explicit suspend/reactivate keeps zero deps and deterministic tests. Rehearsal reuses ToolSynthesizer sandbox + simulated-human rubric (clean sandbox → approve).

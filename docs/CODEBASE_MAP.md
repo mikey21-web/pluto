@@ -129,6 +129,10 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 `GraceRehearsal` — operational resilience + joy. C112 `enterFugue`/`exitFugue` (crisis mode: suspends non-Finance/Sovereign agents, emits event), C113 `initiateOffSwitch`/`tickOffSwitch`/`cancelOffSwitch` (60s graceful shutdown window), C114 `planRehearsal`/`approveRehearsal`/`executeRehearsal`/`rejectRehearsal` (sandbox via ToolSynthesizer + simulated-human → human approval → real exec), C115 `initWhimsy` (1-2% of activity budget) + `spendWhimsy` (capped, joy-marked). Exposed as `runtime.grace` + grace API.
 - `enterFugue` `:52` · `exitFugue` `:79` · `initiateOffSwitch` `:92` · `tickOffSwitch` `:107` · `planRehearsal` `:123` · `approveRehearsal` `:147` · `executeRehearsal` `:155` · `initWhimsy` `:178` · `spendWhimsy` `:193` · `status` `:213`
 
+### 2.12l 90-Day Operations — `src/ops/engine.ts` (P2, PLAN 2e)
+`OpsRuntime` — 90-day operational clock. `currentDay`/`phaseSummary` (Days 1-30 supervised / 31-60 trust-building / 61-90 autonomous / 90+ gate), `recordDay`/`autoRecordDay` (decisions, escalations, human reviews, leads, meetings, deals, rollbacks, spend, revenue), `recordWeek` (7-day aggregate + retro), `recordMonth` (~30-day aggregate + unit economics CAC/LTV/positive), `evaluateGate` (Phase 2 gate: 100+ leads, 20+ meetings, 3+ deals, zero rollbacks 61-90, client.satisfied, unit economics positive). Exposed as `runtime.ops` + ops API.
+- `currentDay` `:34` · `phaseSummary` `:50` · `recordDay` `:58` · `autoRecordDay` `:82` · `recordWeek` `:107` · `recordMonth` `:142` · `evaluateGate` `:184` · `status` `:228`
+
 ### 2.13 Runtime Composition — `src/runtime.ts`
 `createRuntime` wires all subsystems + adapter seams (`PlutoAdapters`) + default bus wiring (task.failed → learning).
 - `createRuntime` `runtime.ts:52` · `formOrganization` `:97` · `PlutoAdapters` `:18` · `meta` `:44`
@@ -146,12 +150,12 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 ### 2.17 Tests — `test/` (25 files, 161 cases)
 `budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, 
 `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`, 
-`bus`, `synthesizer`, `canary`, `immune`, `forage`, `reality`, `sovereign`, `civilization`, `entity`, `grace`, `phase1_gate`. `helpers.ts` isolates 
+`bus`, `synthesizer`, `canary`, `immune`, `forage`, `reality`, `sovereign`, `civilization`, `entity`, `grace`, `ops`, `phase1_gate`. `helpers.ts` isolates 
 each runtime on a 
 temp dir. Coverage: 
-95.78% line 
-/ 80.48% branch 
-/ 91.09% funcs.
+95.72% line 
+/ 80.55% branch 
+/ 90.87% funcs.
 
 ---
 
