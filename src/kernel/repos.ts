@@ -1,4 +1,5 @@
 import { Store } from './store.ts';
+import { createHash } from 'node:crypto';
 import type {
   Agent, ApprovalRequest, Artifact, BudgetRow, Capability, Company, DecisionRecord, Department,
   EventRecord, Experiment, GraphEdge, GraphNode, Human, Job, LearningRecord, MemoryRecord,
@@ -663,5 +664,34 @@ export class Repos {
   }
   markRollbackApplied(id: string): void {
     this.store.db.prepare('UPDATE rollback_actions SET status=?,reversed_at=? WHERE id=?').run('applied', now(), id);
+  }
+
+  // ---- immutable audit log (2b) — hash-chained, tamper-evident
+  lastAuditHash(): string | null {
+    const r: any = this.store.db.prepare('SELECT hash FROM audit_log ORDER BY seq DESC LIMIT 1').get();
+    return r?.hash ?? null;
+  }
+  appendAuditEntry(c: { id: string; company_id: string; actor: string; action: string; detail: string }): string {
+    const prev = this.lastAuditHash() ?? 'GENESIS';
+    const hash = createHash('sha256').update(`${prev}|${c.id}|${c.company_id}|${c.actor}|${c.action}|${c.detail}|${now()}`).digest('hex');
+    this.store.db.prepare('INSERT INTO audit_log (id,company_id,ts,actor,action,detail,prev_hash,hash) VALUES (?,?,?,?,?,?,?,?)')
+      .run(c.id, c.company_id, now(), c.actor, c.action, c.detail, prev, hash);
+    return hash;
+  }
+  auditEntries(companyId?: string): any[] {
+    return companyId
+      ? this.store.db.prepare('SELECT * FROM audit_log WHERE company_id=? ORDER BY seq ASC').all(companyId)
+      : this.store.db.prepare('SELECT * FROM audit_log ORDER BY seq ASC').all();
+  }
+  // protected core (C60)
+  protectFile(c: { company_id: string; path: string; reason: string }): { id: string; checksum: string } {
+    const checksum = createHash('sha256').update(c.path).digest('hex');
+    const id = newId('core');
+    this.store.db.prepare('INSERT INTO protected_core (id,company_id,path,checksum,reason,anchored_at) VALUES (?,?,?,?,?,?)')
+      .run(id, c.company_id, c.path, checksum, c.reason, now());
+    return { id, checksum };
+  }
+  protectedFiles(companyId: string): any[] {
+    return this.store.db.prepare('SELECT * FROM protected_core WHERE company_id=? ORDER BY anchored_at').all(companyId);
   }
 }

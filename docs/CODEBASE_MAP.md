@@ -117,6 +117,10 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 `Sovereign` — the portfolio-level governor over every company in one store. Company factory (`spawnCompany` = `repos.createCompany` + org form + budgets + policies + default owner; repurposes `OrgEngine`/`ResourceEngine`/`PolicyEngine`), cross-company memory (`shareLesson`/`lessons` on `__global__`), per-company kill switch (`haltCompany`/`resumeCompany`/`isHalted`), global kill switch (`haltAll` + `kill_switch_log` table), per-action rollback registry (`registerRollback`/`applyRollback`/`rollbacks` over `rollback_actions`), C29 Deadman's Switch (`deadmanCheck` → read-only after 7-day owner silence; `heartbeat` restores), Sovereign digest (`digest`: daily owner report of tasks/spend/approvals/risks/events/halted), multi-layer approval routing (`routeApproval` auto/gated/human-only via `repos.createApproval`), C50 multi-owner model (`sovereign_owners` + `addOwner`/`owners`; full multi-person impl deferred to Phase 4k). Exposed as `runtime.sovereign` + `/sovereign/*` API. New schema: `sovereign_owners`, `kill_switch_log`, `rollback_actions`.
 - `spawnCompany` `engine.ts:45` · `haltCompany` `:82` · `haltAll` `:107` · `registerRollback` `:119` · `deadmanCheck` `:153` · `digest` `:173` · `routeApproval` `:197` · `addOwner` `:215`
 
+### 2.12i Civilization Governance — `src/governance/civilization.ts` (P2, PLAN 2b, C27/C60/C28/C51/C13/C12/C30/C52)
+`Civilization` — the constitutional/ethical layer. C27 `seedConstitution`/`amendArticle` (Human Supremacy / Non-Harm / Transparency / Accountability / Protected Core; entrenched articles need human authority), C60 `protect`/`verifyProtectedCore` (protected_core table, sha-256), C28 `ethicsVet` (independent veto) + `ethicsLog`, C51 `adjudicate` (Constitutional Court), C13 `whistleblow`/`concerns`, C12 `challenge` (Anti-Sovereign weighted risks), C30 `explain`/`explanations`, immutable hash-chained `audit`/`verifyAuditLog` (audit_log table), C52 `review` (amnesty: retrain/re-scope/retire/clear). Exposed as `runtime.civ` + `/civilization/*` + per-company `/{ethics,court,whistleblower,challenge,explain,protected-core,amnesty}/*` API. New schema: `protected_core`, `audit_log`.
+- `seedConstitution` `:75` · `amendArticle` `:93` · `ethicsVet` `:106` · `adjudicate` `:142` · `whistleblow` `:161` · `challenge` `:177` · `explain` `:191` · `protect` `:203` · `review` `:219` · `audit`/`verifyAuditLog` `:252/257`
+
 ### 2.13 Runtime Composition — `src/runtime.ts`
 `createRuntime` wires all subsystems + adapter seams (`PlutoAdapters`) + default bus wiring (task.failed → learning).
 - `createRuntime` `runtime.ts:52` · `formOrganization` `:97` · `PlutoAdapters` `:18` · `meta` `:44`
@@ -134,12 +138,12 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 ### 2.17 Tests — `test/` (25 files, 161 cases)
 `budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, 
 `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`, 
-`bus`, `synthesizer`, `canary`, `immune`, `forage`, `reality`, `sovereign`, `phase1_gate`. `helpers.ts` isolates 
+`bus`, `synthesizer`, `canary`, `immune`, `forage`, `reality`, `sovereign`, `civilization`, `phase1_gate`. `helpers.ts` isolates 
 each runtime on a 
 temp dir. Coverage: 
-95.37% line 
-/ 80.58% branch 
-/ 90.19% funcs.
+95.54% line 
+/ 80.28% branch 
+/ 90.66% funcs.
 
 ---
 

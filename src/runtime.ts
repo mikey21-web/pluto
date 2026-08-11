@@ -24,6 +24,7 @@ import { ImmuneSystem } from './immune/engine.ts';
 import { ForageEngine } from './forage/engine.ts';
 import { RealityInterface, buildRealityInterface } from './reality/engine.ts';
 import { Sovereign } from './sovereign/engine.ts';
+import { Civilization } from './governance/civilization.ts';
 
 /** Adapter seams — every external system (MCP, Temporal, Graphiti, Letta, OpenHands…) plugs in behind these. */
 export interface PlutoAdapters {
@@ -62,6 +63,7 @@ export interface PlutoRuntime {
   forage: ForageEngine;
   reality: RealityInterface;
   sovereign: Sovereign;
+  civ: Civilization;
   tools: ToolDef[];
   adapters: PlutoAdapters;
 }
@@ -98,6 +100,8 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
   const policies = new PolicyEngine(state);
   const meta = new MetaAgent(state, { tools, forage });
   const sovereign = new Sovereign(state);
+  const civ = new Civilization(state);
+  civ.seedConstitution();
 
   resources.defaults(company.id);
   seedCapabilities(state, company.id);
@@ -105,7 +109,7 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
 
   const runtime: PlutoRuntime = {
     state, company, workforce, governance, resources, verifier, learning, factory,
-    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, messages, synthesizer, canary, immune, forage, reality, sovereign, tools,
+    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, messages, synthesizer, canary, immune, forage, reality, sovereign, civ, tools,
     adapters: {},
   };
 

@@ -135,6 +135,25 @@
 | POST | `/api/company/:id/sovereign/owners` | Add an owner `{name, role, email?, authority[]}` (C50 multi-owner). |
 | GET | `/api/company/:id/sovereign/owners` | List owners for a company. |
 
+## Civilization Governance (2b)
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/civilization/constitution` | Seeded Constitution articles (C27). |
+| POST | `/api/civilization/constitution/amend` | Amendment `{article_id, newBody, authority?}`; entrenched needs `authority: human`. |
+| POST | `/api/company/:id/ethics/vet` | Ethics Officer veto `{action, description}` → `{allowed, reason}` (C28). |
+| GET | `/api/company/:id/ethics/log` | Ethics verdict log. |
+| POST | `/api/company/:id/court/adjudicate` | Constitutional Court `{dispute, article_ref?}` → ruling (C51). |
+| POST | `/api/company/:id/whistleblower` | Whistleblower escalation `{from_agent, concern}` (C13). |
+| GET | `/api/company/:id/whistleblower/concerns` | List escalated concerns. |
+| POST | `/api/company/:id/challenge` | Anti-Sovereign weighted risks `{proposal}` (C12). |
+| POST | `/api/company/:id/explain` | Store human-readable rationale `{decision, rationale}` (C30). |
+| GET | `/api/company/:id/explanations` | Stored rationales. |
+| POST | `/api/company/:id/protected-core` | Protect a never-self-modify path `{path, reason}` (C60). |
+| GET | `/api/company/:id/protected-core` | Verify protected core integrity. |
+| POST | `/api/company/:id/amnesty/review` | Agent review `{agent_id, violation}` → retrain/re-scope/retire/clear (C52). |
+| GET | `/api/civilization/audit` | Verify the immutable hash-chained audit log. |
+
 ## Strategy (§16)
 
 | Method | Path | Notes |

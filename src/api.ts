@@ -30,6 +30,7 @@ import { ImmuneSystem } from './immune/engine.ts';
 import { ForageEngine } from './forage/engine.ts';
 import { buildRealityInterface } from './reality/engine.ts';
 import { Sovereign } from './sovereign/engine.ts';
+import { Civilization } from './governance/civilization.ts';
 
 const DATA_DIR = process.env.PLUTO_DATA_DIR ?? './data';
 const PORT = Number(process.env.PLUTO_PORT ?? 4000);
@@ -68,6 +69,8 @@ const forage = new ForageEngine({
 });
 const reality = buildRealityInterface(world, { bus: messages });
 const sovereign = new Sovereign(state);
+const civ = new Civilization(state);
+civ.seedConstitution();
 
 let lastSeq = 0;
 const sseClients = new Set<import('node:http').ServerResponse>();
@@ -616,6 +619,51 @@ app.post('/api/company/:id/sovereign/owners', (req, res) => {
 });
 app.get('/api/company/:id/sovereign/owners', (req, res) => {
   res.json(sovereign.owners(req.params.id));
+});
+
+// ---- civilization governance (2b)
+app.get('/api/civilization/constitution', (req, res) => {
+  res.json(civ.constitution());
+});
+app.post('/api/civilization/constitution/amend', (req, res) => {
+  res.json(civ.amendArticle({ article_id: req.body?.article_id, newBody: req.body?.newBody ?? '', authority: req.body?.authority }));
+});
+app.post('/api/company/:id/ethics/vet', (req, res) => {
+  res.json(civ.ethicsVet({ company_id: req.params.id, action: req.body?.action ?? '', description: req.body?.description ?? '' }));
+});
+app.get('/api/company/:id/ethics/log', (req, res) => {
+  res.json(civ.ethicsLog(req.params.id));
+});
+app.post('/api/company/:id/court/adjudicate', (req, res) => {
+  res.json(civ.adjudicate({ company_id: req.params.id, dispute: req.body?.dispute ?? '', article_ref: req.body?.article_ref }));
+});
+app.post('/api/company/:id/whistleblower', (req, res) => {
+  res.json(civ.whistleblow({ company_id: req.params.id, from_agent: req.body?.from_agent ?? 'unknown', concern: req.body?.concern ?? '' }));
+});
+app.get('/api/company/:id/whistleblower/concerns', (req, res) => {
+  res.json(civ.concerns(req.params.id));
+});
+app.post('/api/company/:id/challenge', (req, res) => {
+  res.json(civ.challenge({ company_id: req.params.id, proposal: req.body?.proposal ?? '' }));
+});
+app.post('/api/company/:id/explain', (req, res) => {
+  civ.explain({ company_id: req.params.id, decision: req.body?.decision ?? '', rationale: req.body?.rationale ?? '' });
+  res.json({ ok: true });
+});
+app.get('/api/company/:id/explanations', (req, res) => {
+  res.json(civ.explanations(req.params.id));
+});
+app.post('/api/company/:id/protected-core', (req, res) => {
+  res.json(civ.protect({ company_id: req.params.id, path: req.body?.path ?? '', reason: req.body?.reason ?? '' }));
+});
+app.get('/api/company/:id/protected-core', (req, res) => {
+  res.json(civ.verifyProtectedCore(req.params.id));
+});
+app.post('/api/company/:id/amnesty/review', (req, res) => {
+  res.json(civ.review({ company_id: req.params.id, agent_id: req.body?.agent_id ?? '', violation: req.body?.violation ?? '' }));
+});
+app.get('/api/civilization/audit', (req, res) => {
+  res.json({ entries: civ.verifyAuditLog() });
 });
 
 // ---- static dashboard

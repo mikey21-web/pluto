@@ -150,6 +150,10 @@ CREATE TABLE IF NOT EXISTS protected_core (
   id TEXT PRIMARY KEY, company_id TEXT, path TEXT, checksum TEXT,
   reason TEXT, anchored_at TEXT
 );
+CREATE TABLE IF NOT EXISTS audit_log (
+  seq INTEGER PRIMARY KEY AUTOINCREMENT, id TEXT, company_id TEXT, ts TEXT,
+  actor TEXT, action TEXT, detail TEXT, prev_hash TEXT, hash TEXT
+);
 CREATE INDEX IF NOT EXISTS idx_events_company ON events(company_id, seq);
 CREATE INDEX IF NOT EXISTS idx_events_type ON events(company_id, type);
 CREATE INDEX IF NOT EXISTS idx_tasks_company ON tasks(company_id, status);

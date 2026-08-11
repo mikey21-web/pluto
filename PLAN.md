@@ -571,15 +571,16 @@ Real commercial channels for the civilization.
 - **OUTCOME:** Sovereign Layer delivered as `Sovereign` (src/sovereign/engine.ts), repurposing existing `OrgEngine`/`ResourceEngine`/`PolicyEngine` to form companies from mission templates. 9 new tests (test/sovereign.test.ts); full suite 170 passing, coverage 95.37% line / 80.58% branch / 90.19% funcs. API routes `/api/sovereign/*` + `/api/company/:id/sovereign/*` + rollback routes added.
 
 ### 2b. Governance Additions
-- [ ] **[C27 — The Constitution]** Write civilization Constitution + amendment protocol
-- [ ] **[C60 — Protected Core]** Identify code that must never be self-modified; enforce cryptographically
-- [ ] **[C28 — Ethics Officer]** Build Ethics Officer agent (independent veto authority)
-- [ ] **[C51 — Constitutional court]** Build Constitutional Court agent (interprets Constitution in disputes)
-- [ ] **[C13 — Whistleblower]** Build Whistleblower channel (any agent can escalate over Sovereign directly to human)
-- [ ] **[C12 — Anti-Sovereign]** Build Anti-Sovereign agent (argues against every major Sovereign decision, devil's advocate)
-- [ ] **[C30 — Explainability]** Build explainability layer (every decision generates human-readable rationale, stored)
-- [ ] Build immutable audit log with cryptographic anchoring
-- [ ] **[C52 — Amnesty and rehabilitation]** Build rule-breaking agent review process (retrain / re-scope / retire, not just terminate)
+- [x] **[C27 — The Constitution]** Write civilization Constitution + amendment protocol — `Civilization.seedConstitution`/`amendArticle` (entrenched articles require human authority)
+- [x] **[C60 — Protected Core]** Identify code that must never be self-modified; enforce cryptographically — `protect`/`verifyProtectedCore` (protected_core table, sha-256 checksum)
+- [x] **[C28 — Ethics Officer]** Build Ethics Officer agent (independent veto authority) — `ethicsVet` (vetoes violations of Human Supremacy/Non-Harm/Protected Core) + `ethicsLog`
+- [x] **[C51 — Constitutional court]** Build Constitutional Court agent (interprets Constitution in disputes) — `adjudicate` (rulings recorded, override Sovereign but not entrenched articles)
+- [x] **[C13 — Whistleblower]** Build Whistleblower channel (any agent can escalate over Sovereign directly to human) — `whistleblow` + `concerns`
+- [x] **[C12 — Anti-Sovereign]** Build Anti-Sovereign agent (argues against every major Sovereign decision, devil's advocate) — `challenge` weighted risks
+- [x] **[C30 — Explainability]** Build explainability layer (every decision generates human-readable rationale, stored) — `explain` + `explanations`
+- [x] Build immutable audit log with cryptographic anchoring — `audit`/`verifyAuditLog` (sha-256 hash-chained, tamper-evident)
+- [x] **[C52 — Amnesty and rehabilitation]** Build rule-breaking agent review process (retrain / re-scope / retire, not just terminate) — `review` (+ retires agent)
+- **OUTCOME:** Governance additions delivered as `Civilization` (src/governance/civilization.ts). 9 new tests (test/civilization.test.ts); full suite 179 passing, coverage 95.54% line / 80.28% branch / 90.66% funcs. API routes `/api/civilization/*` + `/api/company/:id/{ethics,court,whistleblower,challenge,explain,protected-core,amnesty}/*`.
 
 ### 2c. Entity #1 Deployment — Real Estate Beachhead
 - [ ] **[C96 — Company-level Governance]** Set up Entity #1's own mini-Council (mini-Sovereign, mini-Ethics Officer, mini-Historian)
