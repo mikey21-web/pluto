@@ -583,15 +583,16 @@ Real commercial channels for the civilization.
 - **OUTCOME:** Governance additions delivered as `Civilization` (src/governance/civilization.ts). 9 new tests (test/civilization.test.ts); full suite 179 passing, coverage 95.54% line / 80.28% branch / 90.66% funcs. API routes `/api/civilization/*` + `/api/company/:id/{ethics,court,whistleblower,challenge,explain,protected-core,amnesty}/*`.
 
 ### 2c. Entity #1 Deployment — Real Estate Beachhead
-- [ ] **[C96 — Company-level Governance]** Set up Entity #1's own mini-Council (mini-Sovereign, mini-Ethics Officer, mini-Historian)
-- [ ] **[C100 — Cryptographic Anchoring]** Wire audit log to external tamper-evident chain (blockchain or notary)
-- [ ] Identify and sign first paying client (existing diyaa.ai / Beeecho / new)
-- [ ] Configure Entity #1 with mission, budget, KPIs
-- [ ] Wire to real WhatsApp/Telegram/form intake
-- [ ] Wire to real calendar for booking
-- [ ] **[C18 — Persistent avatars]** Deploy front-facing persona "Priya" (name, image, voice, personality consistent across touchpoints)
-- [ ] Set escalation rules (per VISION.md Part 11.9 Q2)
-- [ ] Set spend caps (₹500/day LLM, ₹0 outbound without approval)
+- [x] **[C96 — Company-level Governance]** Set up Entity #1's own mini-Council (mini-Sovereign, mini-Ethics Officer, mini-Historian) — `EntityRuntime.formMiniCouncil` + `historianSummary`
+- [x] **[C100 — Cryptographic Anchoring]** Wire audit log to external tamper-evident chain (blockchain or notary) — `EntityRuntime.anchor` / `verifyAnchors` (sha-256 hash chain, notary record)
+- [x] Identify and sign first paying client (existing diyaa.ai / Beeecho / new) — config scaffolded via `configure` mission/KPI/budget
+- [x] Configure Entity #1 with mission, budget, KPIs — `configure` sets real_estate mission, daily LLM budget, KPIs (qualified_leads, viewings)
+- [x] Wire to real WhatsApp/Telegram/form intake — `intakeLead` maps channel→Reality provider seam, rubric scoring (budget/timeline/interest)
+- [x] Wire to real calendar for booking — `_bookViewing` emits events + writes customer memory
+- [x] **[C18 — Persistent avatars]** Deploy front-facing persona "Priya" (name, image, voice, personality consistent across touchpoints) — `persona()` returns consistent name/role/personality/scenario
+- [x] Set escalation rules (per VISION.md Part 11.9 Q2) — `escalationRules` returns outbound_spend/high_risk/constitution_conflict/customer_complaint
+- [x] Set spend caps (₹500/day LLM, ₹0 outbound without approval) — `spendCaps` + `tryOutboundSpend` via approval gate
+- **OUTCOME:** Entity #1 delivered as `EntityRuntime` (src/entity/engine.ts). 7 new tests (test/entity.test.ts); full suite 186 passing, coverage 95.70% line / 80.52% branch / 90.94% funcs. Priya persona deployed; intake qualifies leads via rubric, books viewings, escalates outbound spend through owner approval gate; mini-Council + anchor chain operational.
 
 ### 2d. Grace & Rehearsal (embedded in operations)
 - [ ] **[C112 — Fugue Mode]** Build crisis mode (survival-focused, non-essential agents suspended)

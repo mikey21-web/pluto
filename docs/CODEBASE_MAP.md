@@ -121,6 +121,10 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 `Civilization` — the constitutional/ethical layer. C27 `seedConstitution`/`amendArticle` (Human Supremacy / Non-Harm / Transparency / Accountability / Protected Core; entrenched articles need human authority), C60 `protect`/`verifyProtectedCore` (protected_core table, sha-256), C28 `ethicsVet` (independent veto) + `ethicsLog`, C51 `adjudicate` (Constitutional Court), C13 `whistleblow`/`concerns`, C12 `challenge` (Anti-Sovereign weighted risks), C30 `explain`/`explanations`, immutable hash-chained `audit`/`verifyAuditLog` (audit_log table), C52 `review` (amnesty: retrain/re-scope/retire/clear). Exposed as `runtime.civ` + `/civilization/*` + per-company `/{ethics,court,whistleblower,challenge,explain,protected-core,amnesty}/*` API. New schema: `protected_core`, `audit_log`.
 - `seedConstitution` `:75` · `amendArticle` `:93` · `ethicsVet` `:106` · `adjudicate` `:142` · `whistleblow` `:161` · `challenge` `:177` · `explain` `:191` · `protect` `:203` · `review` `:219` · `audit`/`verifyAuditLog` `:252/257`
 
+### 2.12j Entity Runtime — `src/entity/engine.ts` (P2, PLAN 2c, C96/C100/C18)
+`EntityRuntime` — the first operating entity (Priya Realty). C96 `formMiniCouncil`/`historianSummary` (mini-Sovereign / mini-Ethics / mini-Historian per company), C100 `anchor`/`verifyAnchors` (sha-256 hash-chain of audit tail into notary records), C18 `persona()` (consistent Priya name/role/personality/scenario), `intakeLead` (rubric on budget/timeline/interest over WhatsApp/Telegram/form channels mapping to Reality providers; `_bookViewing` emits calendar events), `escalationRules` (outbound_spend, high_risk, constitution_conflict, customer_complaint → human + mini-Ethics/court), `spendCaps`/`tryOutboundSpend` (₹500/day LLM, ₹0 outbound without approval via approval gate), `configure` (mission + KPI + daily LLM budget). Exposed as `runtime.entity` + entity API.
+- `formMiniCouncil` `:44` · `anchor` `:70` · `configure` `:103` · `persona` `:124` · `intakeLead` `:143` · `escalationRules` `:186` · `spendCaps` `:193` · `tryOutboundSpend` `:203` · `historianSummary` `:223`
+
 ### 2.13 Runtime Composition — `src/runtime.ts`
 `createRuntime` wires all subsystems + adapter seams (`PlutoAdapters`) + default bus wiring (task.failed → learning).
 - `createRuntime` `runtime.ts:52` · `formOrganization` `:97` · `PlutoAdapters` `:18` · `meta` `:44`
@@ -138,12 +142,12 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 ### 2.17 Tests — `test/` (25 files, 161 cases)
 `budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, 
 `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`, 
-`bus`, `synthesizer`, `canary`, `immune`, `forage`, `reality`, `sovereign`, `civilization`, `phase1_gate`. `helpers.ts` isolates 
+`bus`, `synthesizer`, `canary`, `immune`, `forage`, `reality`, `sovereign`, `civilization`, `entity`, `phase1_gate`. `helpers.ts` isolates 
 each runtime on a 
 temp dir. Coverage: 
-95.54% line 
-/ 80.28% branch 
-/ 90.66% funcs.
+95.70% line 
+/ 80.52% branch 
+/ 90.94% funcs.
 
 ---
 

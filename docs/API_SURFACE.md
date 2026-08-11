@@ -154,6 +154,22 @@
 | POST | `/api/company/:id/amnesty/review` | Agent review `{agent_id, violation}` → retrain/re-scope/retire/clear (C52). |
 | GET | `/api/civilization/audit` | Verify the immutable hash-chained audit log. |
 
+## Entity #1 Runtime (2c)
+
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/api/company/:id/entity/council` | Form mini-Council `{miniSovereign, miniEthics, miniHistorian}` (C96). |
+| POST | `/api/company/:id/entity/anchor` | Anchor audit tail `{notary?}` → tamper-evident chain (C100). |
+| GET | `/api/company/:id/entity/anchors` | List anchor chain. |
+| POST | `/api/company/:id/entity/configure` | Configure mission/budget/KPIs `{mission, daily_budget_usd, kpis}`. |
+| GET | `/api/company/:id/entity/persona` | Priya persona (name, role, personality, scenario) (C18). |
+| POST | `/api/company/:id/entity/intake` | Intake lead `{channel, contact, interest, budget, timeline, humanFlag?}` → rubric score + qualified + books viewing if strong. |
+| GET | `/api/company/:id/entity/leads` | List all leads. |
+| GET | `/api/company/:id/entity/escalation-rules` | Escalation triggers (outbound_spend, high_risk, constitution_conflict, customer_complaint). |
+| GET | `/api/company/:id/entity/spend-caps` | Spend caps (₹500/day LLM, ₹0 outbound). |
+| POST | `/api/company/:id/entity/outbound-spend` | Try outbound spend `{amount}` → blocked with approval if > ₹0. |
+| GET | `/api/company/:id/entity/historian` | Mini-Historian recent events summary. |
+
 ## Strategy (§16)
 
 | Method | Path | Notes |
