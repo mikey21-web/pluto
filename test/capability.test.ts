@@ -30,3 +30,22 @@ test('capability factory: existing capability → reuse', () => {
   assert.equal(d.decision, 'reuse');
   dispose();
 });
+test('capability registry versioning: registerVersion keeps immutable history', () => {
+  const { r, dispose } = withOrg();
+  r.capabilities.registerVersion(r.company.id, 'voice_outbound', { provider: 'twilio', description: 'v1' });
+  r.capabilities.registerVersion(r.company.id, 'voice_outbound', { provider: 'vapi', description: 'v2' });
+  const versions = r.capabilities.versions(r.company.id, 'voice_outbound');
+  assert.equal(versions.length, 2);
+  assert.notEqual(versions[0].id, versions[1].id, 'each version is a distinct immutable row');
+  dispose();
+});
+
+test('capability registry versioning: inherits provider/description from prior when omitted', () => {
+  const { r, dispose } = withOrg();
+  r.capabilities.registerVersion(r.company.id, 'web_research', { description: 'new impl' });
+  const versions = r.capabilities.versions(r.company.id, 'web_research');
+  const added = versions.find(v => v.description === 'new impl');
+  assert.ok(added);
+  assert.equal(added.provider, 'http+playwright', 'inherits provider from seed prior');
+  dispose();
+});

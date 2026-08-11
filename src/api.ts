@@ -24,6 +24,8 @@ import { BrainLayer } from './brain/index.ts';
 import { makeDriver } from './agents/llm.ts';
 import { WorldModel } from './world/engine.ts';
 import { MessageBus } from './bus/engine.ts';
+import { ToolSynthesizer } from './meta/synthesizer.ts';
+import { CanaryDeploy } from './meta/canary.ts';
 
 const DATA_DIR = process.env.PLUTO_DATA_DIR ?? './data';
 const PORT = Number(process.env.PLUTO_PORT ?? 4000);
@@ -53,6 +55,8 @@ const meta = new MetaAgent(state, { tools });
 const brain = new BrainLayer({ defaultDriver: makeDriver() });
 const world = new WorldModel(state.store);
 const messages = new MessageBus(state, bus);
+const synthesizer = new ToolSynthesizer();
+const canary = new CanaryDeploy();
 
 let lastSeq = 0;
 const sseClients = new Set<import('node:http').ServerResponse>();
@@ -333,7 +337,7 @@ app.post('/api/company/:id/tasks', async (req, res) => {
   setImmediate(async () => { await wf.run(task.id); broadcast(req.params.id); });
 });
 
-// ---- meta layer (§1c P1) — introspection, agent generation, kill switch
+// ---- meta layer (§1c P1/P2) — introspection, agent generation, tool synthesis, canary, kill switch
 app.get('/api/company/:id/meta/introspect', (req, res) => {
   res.json(meta.whatCanIDo(req.params.id));
 });
@@ -346,6 +350,40 @@ app.post('/api/company/:id/meta/spawn', async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: String(e) });
   }
+});
+app.post('/api/company/:id/meta/tools/synthesize', (req, res) => {
+  const spec = synthesizer.synthesize(String(req.body?.spec ?? ''));
+  if (!spec) return res.status(400).json({ error: 'invalid tool spec' });
+  res.json({ spec, checksum: synthesizer.checksum(spec) });
+});
+app.post('/api/company/:id/meta/tools/test', async (req, res) => {
+  // body: { spec: ToolSpec, tests: SandboxTest[] }
+  const spec = String(req.body?.spec);
+  const parsed = synthesizer.synthesize(spec);
+  if (!parsed) return res.status(400).json({ error: 'invalid tool spec' });
+  const tests = Array.isArray(req.body?.tests) ? req.body.tests : [];
+  const result = await synthesizer.sandboxTest(parsed, tests);
+  res.json({ passed: result.passed, failures: result.failures, error: result.error });
+});
+// canary deployment for synthesized tools
+app.get('/api/company/:id/meta/canary', (req, res) => {
+  res.json(canary.list(req.params.id));
+});
+app.post('/api/company/:id/meta/canary', (req, res) => {
+  const e = canary.start({ company_id: req.params.id, tool_name: req.body?.tool_name ?? 'tool' });
+  res.json(e);
+});
+app.post('/api/company/:id/meta/canary/:id/promote', (req, res) => {
+  const e = canary.promote(req.params.id);
+  res.json(e ?? { error: 'not found or rolled back' });
+});
+app.post('/api/company/:id/meta/canary/:id/rollback', (req, res) => {
+  const e = canary.rollback(req.params.id);
+  res.json(e ?? { error: 'not found' });
+});
+app.post('/api/company/:id/meta/canary/:id/stop', (req, res) => {
+  const e = canary.stop(req.params.id);
+  res.json(e ?? { error: 'not found' });
 });
 app.post('/api/company/:id/meta/agents/:agentId/kill', (req, res) => {
   const a = meta.kill(req.params.id, req.params.agentId);

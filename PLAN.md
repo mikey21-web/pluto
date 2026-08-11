@@ -472,22 +472,26 @@ Foundation for self-extension. Depends on 1a and 1b.
   - `MetaAgent.detectGaps`: failed tasks with unfamiliar kinds + `Unknown tool:` trace events, deduped against covered capabilities/agents. OUTCOME: 3 tests (2026-08-12)
 - [x] **[P1 — Meta-agent]** Build agent generator (LLM writes agent spec: role, prompt, tools, budget, KPIs)
   - `MetaAgent.generateSpec` (+`spawnForGap`): LLM returns JSON spec, deterministic default fallback on parse failure. OUTCOME: 3 tests (2026-08-12)
-- [ ] Build sandbox tester (spins up new agent in isolation, synthetic tests) — deferred: sandbox is the P1 open decision (see L341-350); AgentFactory runs isolated in temp-dir runtimes already
+- [x] Build sandbox tester (spins up new agent in isolation, synthetic tests)
+  - `ToolSynthesizer.sandboxTest`: compiles a tool in an isolated `node:vm` context and runs synthetic tests; only tools passing every test materialize. OUTCOME: 4 tests (2026-08-12)
 - [x] Build agent registration flow (add to registry, wire to bus, seed memory)
   - `MetaAgent.spawn`: createForCapability → set budget → registerCapability → remember + emit. OUTCOME: 2 tests (2026-08-12)
-- [ ] **[P2 — Tool synthesis]** Build tool synthesizer (LLM writes code, sandbox executes, tests pass)
+- [x] **[P2 — Tool synthesis]** Build tool synthesizer (LLM writes code, sandbox executes, tests pass)
+  - `src/meta/synthesizer.ts` `ToolSynthesizer`: `synthesize` (LLM tool spec → ToolSpec), `sandboxTest` (compile + run synthetic tests in node:vm), `checksum`. OUTCOME: 8 tests (2026-08-12)
 - [x] Build capability registry (queryable, versioned)
-  - `repos.registerCapability` + `/api/company/:id/capabilities`. OUTCOME: covered in meta + capability suites (2026-08-12)
-- [ ] Build canary deployment (5% → 10% → 50% → 100% traffic) — 1d gradual promotion reuses this
+  - `CapabilityFactory.registerVersion` (immutable version rows per name) + `versions()` query; `repos.registerCapability` + `/api/company/:id/capabilities`. OUTCOME: 5 tests (2026-08-12)
+- [x] Build canary deployment (5% → 10% → 50% → 100% traffic) — 1d gradual promotion reuses this
+  - `src/meta/canary.ts` `CanaryDeploy`: staged rollout, promote/rollback/stop, `isLive`, deterministic `shouldServe`. OUTCOME: 5 tests (2026-08-12)
 - [x] Build introspection API (system reports what it can/cannot do)
   - `MetaAgent.whatCanIDo` + `GET /api/company/:id/meta/introspect`. OUTCOME: 1 test (2026-08-12)
 - [x] Build kill switch per spawned entity
   - `MetaAgent.kill` + `POST /api/company/:id/meta/agents/:agentId/kill`. OUTCOME: 1 test (2026-08-12)
 - [x] Test: workflow with missing capability triggers auto-creation of agent + tool
-  - `meta.detectGaps` surfaces the gap; `spawnForGap` materializes the agent. OUTCOME: 2 tests (2026-08-12)
+  - `meta.detectGaps` surfaces the gap; `spawnForGap` materializes the agent; `synthesize`+`sandboxTest` materializes tools. OUTCOME: (2026-08-12)
 - [x] Test: newly-created agent completes real task without human
   - end-to-end: spawn → submit → workforce.run → SUCCEEDED + traces. OUTCOME: 1 test (2026-08-12)
-- [ ] **Milestone:** system creates its own agents and tools when it hits gaps — agents done; tools require P2 tool synthesizer
+- [x] **Milestone:** system creates its own agents and tools when it hits gaps
+  - agents via `MetaAgent.spawnForGap`; tools via `ToolSynthesizer` sandbox-gated; capability versioning + canary rollout complete the loop. API: `/meta/tools/synthesize`, `/meta/tools/test`, `/meta/canary`. OUTCOME: 2026-08-12
 
 ### 1d. Immune System (Month 5-6) [Design Principle #11 — Silent Competence]
 Foundation for reliability at scale. Depends on 1c.

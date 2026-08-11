@@ -97,6 +97,10 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 `MessageBus`: typed agent-to-agent messaging (`CONTRACTS`: request/offer/delegate/dispute/clarify/report/escalate/confess) over the durable `messages` table + EventBus. `subscribe` routing (contract + private channel), `offer`/`acceptOffer`/`rejectOffer` negotiation, `confess` (private self-doubt), `log` replay. `capability_gap` request → meta-agent spawn wiring in runtime. Exposed as `runtime.messages` + `/messages` API.
 - `subscribe` `engine.ts:38` · `send` `:58` · `offer` `:87` · `acceptOffer` `:96` · `confess` `:116` · `log` `:130`
 
+### 2.12d Tool Synthesis + Canary — `src/meta/synthesizer.ts`, `src/meta/canary.ts` (P2, PLAN 1c)
+`ToolSynthesizer` — P2: `synthesize` (LLM tool spec → ToolSpec), `sandboxTest` (compile in `node:vm` + run synthetic tests; only passing tools become `ToolDef`), `checksum`. `CanaryDeploy` — staged 5%→10%→50%→100% rollout (`promote`/`rollback`/`stop`, `isLive`, deterministic `shouldServe`). `CapabilityFactory.registerVersion`/`versions` for immutable capability versions. Exposed as `runtime.synthesizer`/`runtime.canary` + `/meta/tools/*`, `/meta/canary/*` API.
+- `synthesize` `synthesizer.ts:56` · `sandboxTest` `:64` · `CanaryDeploy.start` `canary.ts:23` · `promote` `:31` · `shouldServe` `:75` · `CapabilityFactory.registerVersion` `factory.ts:92`
+
 ### 2.13 Runtime Composition — `src/runtime.ts`
 `createRuntime` wires all subsystems + adapter seams (`PlutoAdapters`) + default bus wiring (task.failed → learning).
 - `createRuntime` `runtime.ts:52` · `formOrganization` `:97` · `PlutoAdapters` `:18` · `meta` `:44`
@@ -111,8 +115,8 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 ### 2.15 Dashboard — `apps/dashboard/src/main.ts`
 945-line SPA (Command Center). Renders company switcher, KPIs, org graph (SVG), objectives, approvals, and a 17-view panel (`renderView` main.ts:205; nav :754). `dist/app.js` is prebuilt via esbuild.
 
-### 2.16 Tests — `test/` (19 files, 116 cases)
-`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`, `bus`. `helpers.ts` isolates each runtime on a temp dir. Coverage: 94.27% line / 80.39% branch / 89.51% funcs.
+### 2.17 Tests — `test/` (21 files, 132 cases)
+`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`, `bus`, `synthesizer`, `canary`. `helpers.ts` isolates each runtime on a temp dir. Coverage: 94.52% line / 80.61% branch / 88.96% funcs.
 
 ---
 

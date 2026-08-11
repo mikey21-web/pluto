@@ -88,6 +88,25 @@ export class CapabilityFactory {
     this.state.emit(companyId, 'capability.registered', cap.id, 'capability', { decision: 'buy', est_cost_usd: estCostUsd });
     return cap;
   }
+
+  /** Register a NEW version of a capability under the same name; each row is an immutable version. */
+  registerVersion(companyId: string, name: string, opts: { provider?: string; description?: string; kind?: Capability['kind']; cost_per_call?: number } = {}): Capability {
+    const prior = this.state.repos.capabilities(companyId).filter(c => c.name === name);
+    const base = prior[prior.length - 1];
+    const cap = this.state.repos.registerCapability({
+      company_id: companyId, name, kind: opts.kind ?? base?.kind ?? 'internal',
+      provider: opts.provider ?? base?.provider ?? 'internal',
+      description: opts.description ?? base?.description ?? name,
+      cost_per_call: opts.cost_per_call ?? base?.cost_per_call ?? 0, cost_per_hour: base?.cost_per_hour ?? 0, availability: 1,
+    });
+    this.state.emit(companyId, 'capability.versioned', cap.id, 'capability', { name, version: prior.length + 1 });
+    return cap;
+  }
+
+  /** Queryable version history for a capability name. */
+  versions(companyId: string, name: string): Capability[] {
+    return this.state.repos.capabilities(companyId).filter(c => c.name === name);
+  }
 }
 
 /** Default catalog of capabilities Pluto ships with (seed set). */

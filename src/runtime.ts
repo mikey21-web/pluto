@@ -18,6 +18,8 @@ import { BrainLayer } from './brain/index.ts';
 import { makeDriver } from './agents/llm.ts';
 import { WorldModel } from './world/engine.ts';
 import { MessageBus } from './bus/engine.ts';
+import { ToolSynthesizer } from './meta/synthesizer.ts';
+import { CanaryDeploy } from './meta/canary.ts';
 
 /** Adapter seams — every external system (MCP, Temporal, Graphiti, Letta, OpenHands…) plugs in behind these. */
 export interface PlutoAdapters {
@@ -50,6 +52,8 @@ export interface PlutoRuntime {
   brain: BrainLayer;
   world: WorldModel;
   messages: MessageBus;
+  synthesizer: ToolSynthesizer;
+  canary: CanaryDeploy;
   tools: ToolDef[];
   adapters: PlutoAdapters;
 }
@@ -70,6 +74,8 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
   const brain = new BrainLayer({ defaultDriver: makeDriver() });
   const world = new WorldModel(state.store);
   const messages = new MessageBus(state, bus);
+  const synthesizer = new ToolSynthesizer();
+  const canary = new CanaryDeploy();
   const workforce = new Workforce(state, tools, brain);
   const workGraph = new WorkGraphEngine(state);
   const fabric = new ExecutionFabric(state);
@@ -83,7 +89,7 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
 
   const runtime: PlutoRuntime = {
     state, company, workforce, governance, resources, verifier, learning, factory,
-    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, messages, tools,
+    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, messages, synthesizer, canary, tools,
     adapters: {},
   };
 
