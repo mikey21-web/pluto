@@ -10,6 +10,7 @@
     "api": "node src/api.ts",
     "operate": "node src/operate.ts",
     "test": "node --test test/*.test.ts",
+    "test:coverage": "node --experimental-test-coverage --test test/*.test.ts",
     "typecheck": "tsc --noEmit",
     "build:dashboard": "esbuild apps/dashboard/src/main.ts --bundle --outfile=apps/dashboard/dist/app.js --minify",
     "start": "node src/api.ts"

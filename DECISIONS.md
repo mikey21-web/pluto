@@ -27,6 +27,14 @@ IMPACT: [what this affects downstream]
 ## Entries
 
 ### 2026-08-12
+TASK: Phase 0.3
+DECISION: Coverage gate passed. Added `npm run test:coverage` (`node --experimental-test-coverage --test test/*.test.ts`). Baseline was 71% line / 61% funcs with seven modules untested (verify, governance, workforce, observability, work/fabric, agents/loop, intel, learn, tools). Added 9 new test files → 79 tests. Coverage now 92.14% line / 79.04% branch / 86.12% funcs (70% gate comfortably met).
+FORAGED: Native `node:test` coverage flag vs `c8`/`vitest` — chose native, zero deps, matches existing harness.
+RATIONALE: TDD-driven test authoring surfaced a real bug: `Workforce.run` no-agent branch saved a stale `QUEUED` snapshot after `Observability.taskSucceeded` had already persisted `SUCCEEDED`, silently reverting the status. Fixed by reloading the task before the final write.
+IMPACT: Guardrail for every later phase (P1–P5 must stay ≥70%). New files: `test/verify`, `test/governance`, `test/workforce`, `test/observability`, `test/fabric`, `test/loop`, `test/intel`, `test/learn`, `test/tools`.
+TRIED: (n/a)
+
+### 2026-08-12
 TASK: Phase 0.2
 DECISION: Domain assumptions extracted from primitives. `BLUEPRINTS` moved from `src/org/engines.ts` into data-driven `config/blueprints.json` (blueprints `services`/`saas`/`real_estate` + `default` key). `OrgEngine.blueprintFor` now selects via JSON keyword tables with first-match-wins then catalog default; `BLUEPRINTS` export removed. Demo and test-harness default missions/company names neutralized to "professional services" (no web-agency language).
 FORAGED: Config-as-data (JSON + runtime read via `readFileSync`/`import.meta.url`) vs TS module export vs JSON import assertion — chose runtime read because Node's native type-stripping (no loader) does not support JSON import assertions; keeps ESM + no build step.

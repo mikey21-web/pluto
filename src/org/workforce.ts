@@ -93,9 +93,10 @@ export class Workforce {
       try {
         if (!agent) {
           this.obs.taskSucceeded(task.id, { via: 'no_agent_auto' });
-          task.output = { auto: true, note: 'no agent assigned; recorded objective progress' };
-          this.state.repos.saveTask(task);
-          return { task, ok: true, evidence: [], cost_usd: 0, message: 'auto-completed' };
+          const fresh = this.state.repos.task(task.id)!;
+          fresh.output = { ...fresh.output, auto: true, note: 'no agent assigned; recorded objective progress' };
+          this.state.repos.saveTask(fresh);
+          return { task: fresh, ok: true, evidence: [], cost_usd: 0, message: 'auto-completed' };
         }
 
         const prompt = this.buildPrompt(task, company?.name ?? 'PLUTO', company?.mission ?? '');
