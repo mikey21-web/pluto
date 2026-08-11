@@ -20,6 +20,7 @@ import { WorldModel } from './world/engine.ts';
 import { MessageBus } from './bus/engine.ts';
 import { ToolSynthesizer } from './meta/synthesizer.ts';
 import { CanaryDeploy } from './meta/canary.ts';
+import { ImmuneSystem } from './immune/engine.ts';
 
 /** Adapter seams — every external system (MCP, Temporal, Graphiti, Letta, OpenHands…) plugs in behind these. */
 export interface PlutoAdapters {
@@ -54,6 +55,7 @@ export interface PlutoRuntime {
   messages: MessageBus;
   synthesizer: ToolSynthesizer;
   canary: CanaryDeploy;
+  immune: ImmuneSystem;
   tools: ToolDef[];
   adapters: PlutoAdapters;
 }
@@ -76,6 +78,7 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
   const messages = new MessageBus(state, bus);
   const synthesizer = new ToolSynthesizer();
   const canary = new CanaryDeploy();
+  const immune = new ImmuneSystem(state, { synth: synthesizer, canary });
   const workforce = new Workforce(state, tools, brain);
   const workGraph = new WorkGraphEngine(state);
   const fabric = new ExecutionFabric(state);
@@ -89,7 +92,7 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
 
   const runtime: PlutoRuntime = {
     state, company, workforce, governance, resources, verifier, learning, factory,
-    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, messages, synthesizer, canary, tools,
+    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, messages, synthesizer, canary, immune, tools,
     adapters: {},
   };
 

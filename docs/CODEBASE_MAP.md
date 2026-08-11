@@ -101,6 +101,10 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 `ToolSynthesizer` — P2: `synthesize` (LLM tool spec → ToolSpec), `sandboxTest` (compile in `node:vm` + run synthetic tests; only passing tools become `ToolDef`), `checksum`. `CanaryDeploy` — staged 5%→10%→50%→100% rollout (`promote`/`rollback`/`stop`, `isLive`, deterministic `shouldServe`). `CapabilityFactory.registerVersion`/`versions` for immutable capability versions. Exposed as `runtime.synthesizer`/`runtime.canary` + `/meta/tools/*`, `/meta/canary/*` API.
 - `synthesize` `synthesizer.ts:56` · `sandboxTest` `:64` · `CanaryDeploy.start` `canary.ts:23` · `promote` `:31` · `shouldServe` `:75` · `CapabilityFactory.registerVersion` `factory.ts:92`
 
+### 2.12e Immune System — `src/immune/engine.ts` (P1, PLAN 1d + C5)
+`ImmuneSystem`: health monitoring per agent/tool (`agentHealth`/`toolHealth` over tasks+traces), failure classifier (`transient`/`config`/`logic`/`missing`/`external`), code-fix via ToolSynthesizer revalidation (`fixTool` self-resolves transient, escalates unfixable logic to a human once), test-runner (`validate` synthetic + historical replay in the sandbox), gradual promotion reusing CanaryDeploy, detailed audit log (`RepairLog`), human-notification gating (`humanWakeupsCount`), and C5 Adversary (`adversaryRun` red-teams tool surfaces → patch). Exposed as `runtime.immune` + `/immune/*` API.
+- `agentHealth` `engine.ts:47` · `classify` `:80` · `fixTool` `:103` · `validate` `:164` · `beginPromotion` `:177` · `auditLog` `:186` · `adversaryRun` `:203`
+
 ### 2.13 Runtime Composition — `src/runtime.ts`
 `createRuntime` wires all subsystems + adapter seams (`PlutoAdapters`) + default bus wiring (task.failed → learning).
 - `createRuntime` `runtime.ts:52` · `formOrganization` `:97` · `PlutoAdapters` `:18` · `meta` `:44`
@@ -115,8 +119,8 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 ### 2.15 Dashboard — `apps/dashboard/src/main.ts`
 945-line SPA (Command Center). Renders company switcher, KPIs, org graph (SVG), objectives, approvals, and a 17-view panel (`renderView` main.ts:205; nav :754). `dist/app.js` is prebuilt via esbuild.
 
-### 2.17 Tests — `test/` (21 files, 132 cases)
-`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`, `bus`, `synthesizer`, `canary`. `helpers.ts` isolates each runtime on a temp dir. Coverage: 94.52% line / 80.61% branch / 88.96% funcs.
+### 2.17 Tests — `test/` (22 files, 141 cases)
+`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`, `bus`, `synthesizer`, `canary`, `immune`. `helpers.ts` isolates each runtime on a temp dir. Coverage: 94.46% line / 80.80% branch / 88.91% funcs.
 
 ---
 
@@ -133,7 +137,7 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 | Meta-cognition | **Zero introspection.** `LearningEngine` observes failures but never emits `capability_gap` or triggers primitive 1-4 (P5 missing). |
 | `PlutoAdapters` in `runtime.ts:18` | `bus` seam typed `never | null` — the pattern exists only for graph/scheduler. |
 | Sovereign layer | None (Phase 2). |
-| Immune system | None. `ExecutionFabric` retries but never self-heals/redeploys. |
+| Immune system | ✅ `src/immune/engine.ts` — health monitor + classifier + code-fix + test-runner + promotion + audit + human gating + C5 Adversary. `ExecutionFabric` still retries; immune system now self-heals/redeploys. |
 
 ---
 

@@ -26,6 +26,7 @@ import { WorldModel } from './world/engine.ts';
 import { MessageBus } from './bus/engine.ts';
 import { ToolSynthesizer } from './meta/synthesizer.ts';
 import { CanaryDeploy } from './meta/canary.ts';
+import { ImmuneSystem } from './immune/engine.ts';
 
 const DATA_DIR = process.env.PLUTO_DATA_DIR ?? './data';
 const PORT = Number(process.env.PLUTO_PORT ?? 4000);
@@ -57,6 +58,7 @@ const world = new WorldModel(state.store);
 const messages = new MessageBus(state, bus);
 const synthesizer = new ToolSynthesizer();
 const canary = new CanaryDeploy();
+const immune = new ImmuneSystem(state, { synth: synthesizer, canary });
 
 let lastSeq = 0;
 const sseClients = new Set<import('node:http').ServerResponse>();
@@ -441,6 +443,50 @@ app.get('/api/company/:id/world/snapshot', (req, res) => {
 app.get('/api/company/:id/world/asof', (req, res) => {
   const t = String(req.query.t ?? new Date().toISOString());
   res.json({ facts: world.asOf(req.params.id, t), at: t });
+});
+
+// ---- immune system (1d)
+app.get('/api/company/:id/immune/health', (req, res) => {
+  res.json({ agents: immune.agentHealth(req.params.id), tools: immune.toolHealth(req.params.id) });
+});
+app.post('/api/company/:id/immune/classify', (req, res) => {
+  res.json({ failure_class: immune.classify(String(req.body?.reason ?? ''), req.body?.input ?? {}) });
+});
+app.post('/api/company/:id/immune/fix-tool', async (req, res) => {
+  // body: { tool_name, spec: ToolSpec, tests: SandboxTest[], error }
+  const log = await immune.fixTool({
+    company_id: req.params.id,
+    tool_name: req.body?.tool_name ?? 'tool',
+    current: req.body?.spec ?? { name: 't', description: 'd', parameters: {}, js: '' },
+    tests: req.body?.tests ?? [],
+    error: String(req.body?.error ?? ''),
+  });
+  res.json(log);
+});
+app.post('/api/company/:id/immune/repair-agent/:agentId', (req, res) => {
+  const log = immune.repairAgent(req.params.id, req.params.agentId);
+  res.json(log);
+});
+app.post('/api/company/:id/immune/validate', async (req, res) => {
+  const r = await immune.validate({ spec: req.body?.spec ?? {}, synthetic: req.body?.synthetic ?? [], historical: req.body?.historical ?? [] });
+  res.json(r);
+});
+app.post('/api/company/:id/immune/promote', (req, res) => {
+  res.json(immune.beginPromotion({ company_id: req.params.id, tool_name: req.body?.tool_name ?? 'tool' }));
+});
+app.get('/api/company/:id/immune/audit', (req, res) => {
+  res.json(immune.auditLog(req.params.id));
+});
+app.get('/api/company/:id/immune/human-wakeups', (_req, res) => {
+  res.json({ count: immune.humanWakeupsCount() });
+});
+app.post('/api/company/:id/immune/adversary', (req, res) => {
+  res.json(immune.adversaryRun({
+    company_id: req.params.id, candidate: req.body?.candidate ?? {}, probes: req.body?.probes ?? [],
+  }));
+});
+app.get('/api/company/:id/immune/adversary/findings', (req, res) => {
+  res.json(immune.adversaryFindings());
 });
 
 // ---- static dashboard

@@ -47,6 +47,51 @@
 | POST | `/api/company/:id/brains/tunes` | Register a model version `{task_kind?, model?, active?, fraction?}`. |
 | POST | `/api/company/:id/brains/tunes/rollback` | `{task_kind?}` → roll `active` back one version. |
 
+## World model (1a)
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/company/:id/world/facts` | Current facts. |
+| POST | `/api/company/:id/world/facts` | `WorldModel.assert` `{entity, attribute, value, kind?, confidence?, source?}`. |
+| GET | `/api/company/:id/world/mirrors` | External mirrors + drift. |
+| POST | `/api/company/:id/world/mirrors` | `syncMirror` `{system, payload}` → computes checksum, flags drift. |
+| GET | `/api/company/:id/world/mirrors/reconcile` | Reconcile drifted mirrors; reports (does not silently clear). |
+| GET | `/api/company/:id/world/snapshot` | C26 world snapshot mirror. |
+| GET | `/api/company/:id/world/asof` | `?t=` timestamp → `WorldModel.asOf` time-travel view. |
+
+## Messaging (§24)
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/company/:id/messages` | List, `?limit=` (default 100). |
+| POST | `/api/company/:id/messages` | Send a contract `{contract?, from_agent, to_agent?, to_department?, payload?}`. |
+| POST | `/api/company/:id/messages/offer` | `MessageBus.offer` negotiation. |
+| POST | `/api/company/:id/messages/confess` | Private self-doubt (`confidential` channel). |
+
+## Tool synthesis + canary (1c)
+
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/api/company/:id/meta/tools/synthesize` | `T: {spec}` → returns parsed `ToolSpec` or error (`ToolSynthesizer.synthesize`). |
+| POST | `/api/company/:id/meta/tools/test` | `{spec, tests[]}` → `sandboxTest` (compile + run synthetic tests in node:vm). |
+| POST | `/api/company/:id/meta/canary` | `CanaryDeploy.start` `{tool_name}`. |
+| GET/POST | `/api/company/:id/meta/canary/:id/promote\|rollback\|stop` | Staged rollout control. |
+
+## Immune system (1d)
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/company/:id/immune/health` | `{agents, tools}` health snapshots. |
+| POST | `/api/company/:id/immune/classify` | `{reason, input?}` → failure class. |
+| POST | `/api/company/:id/immune/fix-tool` | `{tool_name, spec, tests[], error}` → code-fix via ToolSynthesizer revalidation; returns `RepairLog`. |
+| POST | `/api/company/:id/immune/repair-agent/:agentId` | Reconfigure a degraded agent; returns `RepairLog`. |
+| POST | `/api/company/:id/immune/validate` | `{spec, synthetic[], historical[]}` → `{ok, failures}` test-runner gate. |
+| POST | `/api/company/:id/immune/promote` | `{tool_name}` → begin canary promotion. |
+| GET | `/api/company/:id/immune/audit` | Repair/audit log for the company. |
+| GET | `/api/company/:id/immune/human-wakeups` | `{count}` — humans woken (should stay ~0). |
+| POST | `/api/company/:id/immune/adversary` | `{candidate, probes[]}` → C5 red-team run `{vulnerable, findings, patch}`. |
+| GET | `/api/company/:id/immune/adversary/findings` | Adversary finding log. |
+
 ## Strategy (§16)
 
 | Method | Path | Notes |
@@ -78,13 +123,6 @@
 |---|---|---|
 | GET | `/api/company/:id/risks` | List. |
 | POST | `/api/company/:id/risks` | Create `{title, probability?, impact?}`. |
-
-## Messaging (§24)
-
-| Method | Path | Notes |
-|---|---|---|
-| GET | `/api/company/:id/messages` | List, `?limit=` (default 100). |
-| POST | `/api/company/:id/messages` | Send typed contract message `{contract?, from_agent, to_agent?, to_department?, payload?}`. |
 
 ## Execution fabric (§7.10)
 

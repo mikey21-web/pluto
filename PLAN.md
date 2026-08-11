@@ -496,17 +496,19 @@ Foundation for self-extension. Depends on 1a and 1b.
 ### 1d. Immune System (Month 5-6) [Design Principle #11 — Silent Competence]
 Foundation for reliability at scale. Depends on 1c.
 
-- [ ] Build health monitoring (per-agent, per-tool, per-integration)
-- [ ] Build failure classifier (transient / config / logic / missing / external)
-- [ ] Build code-fix agent (reads broken code, proposes fix)
-- [ ] Build test-runner (sandbox validation against synthetic + historical data)
-- [ ] Build gradual promotion pipeline (canary → 10% → 50% → 100%)
-- [ ] Build detailed audit log (every fix, every deploy, every rollback)
-- [ ] Build human-notification gating (only wake human if unable to fix)
-- [ ] **[C5 — The Adversary]** Build Adversary subsystem (continuous red-team, jailbreak attempts, exploit attempts)
-- [ ] Test: introduce bug, verify auto-detection + fix + deploy without human
-- [ ] Test: Adversary finds real vulnerability, triggers patch
-- [ ] **Milestone:** system heals itself before humans notice
+- [x] Build health monitoring (per-agent, per-tool, per-integration)
+- [x] Build failure classifier (transient / config / logic / missing / external)
+- [x] Build code-fix agent (reads broken code, proposes fix)
+- [x] Build test-runner (sandbox validation against synthetic + historical data)
+- [x] Build gradual promotion pipeline (canary → 10% → 50% → 100%)
+- [x] Build detailed audit log (every fix, every deploy, every rollback)
+- [x] Build human-notification gating (only wake human if unable to fix)
+- [x] **[C5 — The Adversary]** Build Adversary subsystem (continuous red-team, jailbreak attempts, exploit attempts)
+- [x] Test: introduce bug, verify auto-detection + fix + deploy without human
+- [x] Test: Adversary finds real vulnerability, triggers patch
+- [x] **Milestone:** system heals itself before humans notice
+
+> **OUTCOME (1d — Immune System, Silent Competence #11):** `src/immune/engine.ts` `ImmuneSystem` — health monitoring per agent/tool (agentHealth/toolHealth over tasks+traces), failure classifier (transient/config/logic/missing/external), code-fix via ToolSynthesizer revalidation (`fixTool` respools transient failures, escalates unfixable logic once), test-runner `validate` (synthetic + historical replay in the node:vm sandbox), gradual promotion reusing CanaryDeploy (canary → 10% → 50% → 100%), detailed audit log `RepairLog`, human-notification gating (`humanWakeupsCount` stays 0 on self-heal). C5 Adversary: `adversaryRun` red-teams tool descriptions (shell/exec/untrusted surfaces) and proposes patch. Wired `runtime.immune` + 10 API endpoints. Tests `test/immune.test.ts` (9): classify buckets, validation gate, transient self-resolve, unfixable→human, repairAgent remembers, canary promotion, adversary flags vuln→patch, end-to-end bug→revalidate→promote without human. 141/141 pass, coverage 94.46% line / 80.80% branch.
 
 ### 1f. Foraging Layer (Month 4-6, parallel track)
 The civilization consumes the world's open-source output.

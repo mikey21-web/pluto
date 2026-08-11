@@ -14,6 +14,13 @@ RATIONALE: [why chosen over alternatives]
 IMPACT: [what this affects downstream]
 ```
 
+### 2026-08-12
+TASK: Phase 1d — Immune System (#11 Silent Competence) + C5 Adversary
+DECISION: Built `src/immune/engine.ts` `ImmuneSystem`: health monitoring (agentHealth/toolHealth over tasks+traces), failure classifier (transient/config/logic/missing/external), code-fix via ToolSynthesizer revalidation, test-runner (synthetic + historical replay), gradual promotion reusing CanaryDeploy, audit log (RepairLog), human-notification gating, and C5 Adversary (`adversaryRun` red-teams tool surfaces). Wired `runtime.immune` + 10 API endpoints.
+FORAGED: health-monitor libs (checkly/uptime/healthchecks) — reject, self-contained; reused in-repo ToolSynthesizer sandbox + CanaryDeploy instead of new deps.
+RATIONALE: Self-healing must live beside the tools it fixes; reusing the node:vm sandbox and canary pipeline keeps zero new runtime deps and matches the "fix before humans notice" rule.
+IMPACT: System now auto-detects, revalidates, and staggers-fix failures with a wake-a-human backstop; C5 red-team active. Next: 1f Foraging + 1e Reality Interface Fill.
+
 ## Tags
 
 - `DISCOVERED:` — new sub-task emerged during work
