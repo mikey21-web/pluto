@@ -13,6 +13,7 @@ import { ExecutionFabric } from './work/fabric.ts';
 import { CapabilityFactory, seedCapabilities } from './capability/factory.ts';
 import { CompanyIntelligence } from './intel/engine.ts';
 import { PolicyEngine } from './plane/policy.ts';
+import { MetaAgent } from './meta/engine.ts';
 
 /** Adapter seams — every external system (MCP, Temporal, Graphiti, Letta, OpenHands…) plugs in behind these. */
 export interface PlutoAdapters {
@@ -41,6 +42,7 @@ export interface PlutoRuntime {
   capabilities: CapabilityFactory;
   intel: CompanyIntelligence;
   policies: PolicyEngine;
+  meta: MetaAgent;
   tools: ToolDef[];
   adapters: PlutoAdapters;
 }
@@ -64,13 +66,14 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
   const capabilities = new CapabilityFactory(state);
   const intel = new CompanyIntelligence(state);
   const policies = new PolicyEngine(state);
+  const meta = new MetaAgent(state, { tools });
 
   resources.defaults(company.id);
   seedCapabilities(state, company.id);
 
   const runtime: PlutoRuntime = {
     state, company, workforce, governance, resources, verifier, learning, factory,
-    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, tools,
+    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, tools,
     adapters: {},
   };
 

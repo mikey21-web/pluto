@@ -81,22 +81,26 @@ Independent verifier registry (`output_exists`, `no_hallucination`). An agent sa
 Graph-based `CompanyIntelligence`: `factsAbout`, `brief`, `learnCustomer`. Plug-point for Graphiti later.
 - `brief` `engine.ts:54`
 
-### 2.12 Runtime Composition — `src/runtime.ts`
-`createRuntime` wires all subsystems + adapter seams (`PlutoAdapters`) + default bus wiring (task.failed → learning).
-- `createRuntime` `runtime.ts:49` · `formOrganization` `:94` · `PlutoAdapters` `:18`
+### 2.12 Meta Layer — `src/meta/engine.ts` (P1, PLAN 1c)
+`MetaAgent`: gap detector (FAILED tasks with unfamiliar kinds + `Unknown tool:` traces), agent generator (LLM writes `AgentSpec` {name, role, prompt, tools, permissions, budget_usd, kpis, department_id} with deterministic fallback), registration flow (`spawn` → `AgentFactory` + budget + capability + memory + event), introspection (`whatCanIDo`), kill switch (`kill` → retire).
+- `detectGaps` `engine.ts:80` · `generateSpec` `:119` · `spawn` `:157` · `spawnForGap` `:183` · `whatCanIDo` `:205`
 
-### 2.13 Entrypoints
+### 2.13 Runtime Composition — `src/runtime.ts`
+`createRuntime` wires all subsystems + adapter seams (`PlutoAdapters`) + default bus wiring (task.failed → learning).
+- `createRuntime` `runtime.ts:52` · `formOrganization` `:97` · `PlutoAdapters` `:18` · `meta` `:44`
+
+### 2.14 Entrypoints
 | File | What |
 |---|---|
 | `demo.ts` | End-to-end bootstrap demo (company → org → workday → approval → learn → verify → strategy → workgraph → policy → capability → intel) |
-| `api.ts` | Express + SSE. ~40 REST endpoints across companies/snapshot/capabilities/strategy/workflow/policies/risks/messages/jobs/intel/projects/artifacts/objectives/tasks/events/approvals/resources/memory/decisions/learning/traces/agents. Static dashboard. |
+| `api.ts` | Express + SSE. ~43 REST endpoints across companies/snapshot/capabilities/strategy/workflow/policies/risks/messages/jobs/intel/projects/artifacts/objectives/tasks/events/approvals/resources/memory/decisions/learning/traces/agents + meta (introspect/spawn/kill). Static dashboard. |
 | `operate.ts` | Continuous Operator daemon: drains QUEUED/PENDING tasks across companies, durable restarts |
 
-### 2.14 Dashboard — `apps/dashboard/src/main.ts`
+### 2.15 Dashboard — `apps/dashboard/src/main.ts`
 945-line SPA (Command Center). Renders company switcher, KPIs, org graph (SVG), objectives, approvals, and a 17-view panel (`renderView` main.ts:205; nav :754). `dist/app.js` is prebuilt via esbuild.
 
-### 2.15 Tests — `test/` (7 files, 24 cases)
-`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`. `helpers.ts` isolates each runtime on a temp dir.
+### 2.16 Tests — `test/` (16 files, 88 cases)
+`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`. `helpers.ts` isolates each runtime on a temp dir. Coverage: 92.58% line / 78.75% branch / 86.9% funcs.
 
 ---
 

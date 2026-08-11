@@ -1,4 +1,4 @@
-# PLUTO — API Surface (Phase 0.4)
+# PLUTO — API Surface (Phase 0.4 + P1)
 
 > Source of truth for `src/api.ts` (Express 5 + SSE). Produced 2026-08-12. Port `PLUTO_PORT` (default 4000), data dir `PLUTO_DATA_DIR` (default `./data`). Multi-tenant: every resource is scoped by `company_id`; per-company rows share one SQLite file.
 
@@ -29,6 +29,14 @@
 | GET | `/api/company/:id/capabilities` | Registry rows. |
 | POST | `/api/company/:id/capabilities` | Register `{name, provider?, description?, kind?}`. |
 | POST | `/api/company/:id/capabilities/acquire` | Forge-or-buy decision via `CapabilityFactory.acquire`; materializes create/buy when the decision says so. Body `{name, description?, cost_ceiling_usd?, urgency?}`. |
+
+## Meta layer (P1, §1c) — self-extension
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/company/:id/meta/introspect` | `MetaAgent.whatCanIDo` — capabilities, agents (id/role/tools/budget/success_rate), tool names, open gaps, budgets. System reports what it can/cannot do. |
+| POST | `/api/company/:id/meta/spawn` | Auto-create an agent for a gap: `{capability, reason?}` → LLM writes `AgentSpec` → register → returns `{agent_id, role, status, spec}`. |
+| POST | `/api/company/:id/meta/agents/:agentId/kill` | Kill switch — retires a spawned entity, records memory + event. 404 if not in this company. |
 
 ## Strategy (§16)
 

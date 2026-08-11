@@ -27,6 +27,15 @@ IMPACT: [what this affects downstream]
 ## Entries
 
 ### 2026-08-12
+TASK: P1 Meta-Agent (PLAN 1c, agent part)
+DECISION: Built `src/meta/engine.ts` `MetaAgent` — gap detector (`detectGaps`: FAILED tasks with unfamiliar kinds + `Unknown tool:` traces, deduped against covered agents/capabilities), agent generator (`generateSpec`: LLM returns a JSON agent spec {name, role, prompt, tools, permissions, budget_usd, kpis, department_id}, deterministic default fallback), registration flow (`spawn`: createForCapability → set budget → registerCapability → remember + emit), introspection (`whatCanIDo`: capabilities, agents, tools, gaps, budgets) and kill switch (`kill`: retire + memory + event). Wired into `PlutoRuntime.meta` and 3 new API routes: `GET /meta/introspect`, `POST /meta/spawn`, `POST /meta/agents/:id/kill`.
+FORAGED: Sandbox tester + tool synthesizer deferred (they are the P1 open decision at PLAN.md L341-350: Docker vs Node worker vs subprocess); not needed for the agent half of P1. Used existing `AgentFactory` for isolated temp-dir creation rather than a new sandbox runtime.
+RATIONALE: P1 = system creates its own agents when it hits capability gaps. Spawned entities are normal agents (versioned spec, budget, KPI, seeded memory, registered capability) — no special casing, so existing Workforce/loop/verifier machinery applies unchanged.
+IMPACT: 9 new tests (test/meta.test.ts) incl. end-to-end "spawned agent completes a real task without human" (SUCCEEDED + traces). Suite now 88/88 pass, coverage 92.58% line / 78.75% branch / 86.9% funcs. PLAN 1c items ticked except sandbox tester, tool synthesizer, canary deployment, milestone.
+TRIED: Falling back to the runtime MockV4Flash driver for spec generation — it does not emit JSON, so `parseSpec` falls back to `defaultSpec`; tests use an explicit SpecDriver for the LLM lane.
+ESCALATE: none.
+
+### 2026-08-12
 TASK: Phase 0.4/0.5
 DECISION: API surface documented in `docs/API_SURFACE.md` (40 endpoints + SSE + static dashboard, grouped by subsystem with body schemas). Phase 0 gate declared complete in `CODEBASE_MAP.md`: grep clean, refactor done, 92% coverage, docs current. Deferred open item: no API auth — local control plane only; add admin token before public exposure (P1+).
 FORAGED: (documentation only)

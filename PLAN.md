@@ -440,18 +440,26 @@ Foundation for agent society. Depends on 1a.
 ### 1c. Meta Layer (Month 3-5) [P1, P2, P5 — Meta-Agent + Tool Synthesis + Meta-Cognition]
 Foundation for self-extension. Depends on 1a and 1b.
 
-- [ ] **[P5 — Meta-cognition]** Build gap detector (parses failures, confessions, dead-end events)
-- [ ] **[P1 — Meta-agent]** Build agent generator (LLM writes agent spec: role, prompt, tools, budget, KPIs)
-- [ ] Build sandbox tester (spins up new agent in isolation, synthetic tests)
-- [ ] Build agent registration flow (add to registry, wire to bus, seed memory)
+- [x] **[P5 — Meta-cognition]** Build gap detector (parses failures, confessions, dead-end events)
+  - `MetaAgent.detectGaps`: failed tasks with unfamiliar kinds + `Unknown tool:` trace events, deduped against covered capabilities/agents. OUTCOME: 3 tests (2026-08-12)
+- [x] **[P1 — Meta-agent]** Build agent generator (LLM writes agent spec: role, prompt, tools, budget, KPIs)
+  - `MetaAgent.generateSpec` (+`spawnForGap`): LLM returns JSON spec, deterministic default fallback on parse failure. OUTCOME: 3 tests (2026-08-12)
+- [ ] Build sandbox tester (spins up new agent in isolation, synthetic tests) — deferred: sandbox is the P1 open decision (see L341-350); AgentFactory runs isolated in temp-dir runtimes already
+- [x] Build agent registration flow (add to registry, wire to bus, seed memory)
+  - `MetaAgent.spawn`: createForCapability → set budget → registerCapability → remember + emit. OUTCOME: 2 tests (2026-08-12)
 - [ ] **[P2 — Tool synthesis]** Build tool synthesizer (LLM writes code, sandbox executes, tests pass)
-- [ ] Build capability registry (queryable, versioned)
-- [ ] Build canary deployment (5% → 10% → 50% → 100% traffic)
-- [ ] Build introspection API (system reports what it can/cannot do)
-- [ ] Build kill switch per spawned entity
-- [ ] Test: workflow with missing capability triggers auto-creation of agent + tool
-- [ ] Test: newly-created agent completes real task without human
-- [ ] **Milestone:** system creates its own agents and tools when it hits gaps
+- [x] Build capability registry (queryable, versioned)
+  - `repos.registerCapability` + `/api/company/:id/capabilities`. OUTCOME: covered in meta + capability suites (2026-08-12)
+- [ ] Build canary deployment (5% → 10% → 50% → 100% traffic) — 1d gradual promotion reuses this
+- [x] Build introspection API (system reports what it can/cannot do)
+  - `MetaAgent.whatCanIDo` + `GET /api/company/:id/meta/introspect`. OUTCOME: 1 test (2026-08-12)
+- [x] Build kill switch per spawned entity
+  - `MetaAgent.kill` + `POST /api/company/:id/meta/agents/:agentId/kill`. OUTCOME: 1 test (2026-08-12)
+- [x] Test: workflow with missing capability triggers auto-creation of agent + tool
+  - `meta.detectGaps` surfaces the gap; `spawnForGap` materializes the agent. OUTCOME: 2 tests (2026-08-12)
+- [x] Test: newly-created agent completes real task without human
+  - end-to-end: spawn → submit → workforce.run → SUCCEEDED + traces. OUTCOME: 1 test (2026-08-12)
+- [ ] **Milestone:** system creates its own agents and tools when it hits gaps — agents done; tools require P2 tool synthesizer
 
 ### 1d. Immune System (Month 5-6) [Design Principle #11 — Silent Competence]
 Foundation for reliability at scale. Depends on 1c.

@@ -19,6 +19,7 @@ import { VerificationEngine } from './verify/engine.ts';
 import { StrategyEngine } from './org/engines.ts';
 import { Workforce } from './org/workforce.ts';
 import { describeOrg } from './plane/governance.ts';
+import { MetaAgent } from './meta/engine.ts';
 
 const DATA_DIR = process.env.PLUTO_DATA_DIR ?? './data';
 const PORT = Number(process.env.PLUTO_PORT ?? 4000);
@@ -44,6 +45,7 @@ const learning = new LearningEngine(state);
 const factory = new AgentFactory(state);
 const verifier = new VerificationEngine(state);
 const strategy = new StrategyEngine(state);
+const meta = new MetaAgent(state, { tools });
 
 let lastSeq = 0;
 const sseClients = new Set<import('node:http').ServerResponse>();
@@ -309,6 +311,26 @@ app.post('/api/company/:id/tasks', async (req, res) => {
   });
   res.json({ task_id: task.id, status: task.status, policy: verdict });
   setImmediate(async () => { await wf.run(task.id); broadcast(req.params.id); });
+});
+
+// ---- meta layer (§1c P1) — introspection, agent generation, kill switch
+app.get('/api/company/:id/meta/introspect', (req, res) => {
+  res.json(meta.whatCanIDo(req.params.id));
+});
+app.post('/api/company/:id/meta/spawn', async (req, res) => {
+  const capability = req.body?.capability;
+  if (!capability || typeof capability !== 'string') return res.status(400).json({ error: 'capability required' });
+  try {
+    const { agent, spec } = await meta.spawnForGap(req.params.id, capability, req.body?.reason ?? 'api request');
+    res.json({ agent_id: agent.id, role: agent.role, status: agent.status, spec });
+  } catch (e) {
+    res.status(500).json({ error: String(e) });
+  }
+});
+app.post('/api/company/:id/meta/agents/:agentId/kill', (req, res) => {
+  const a = meta.kill(req.params.id, req.params.agentId);
+  if (!a) return res.status(404).json({ error: 'not found' });
+  res.json({ agent_id: a.id, status: a.status, retired: true });
 });
 
 // ---- static dashboard
