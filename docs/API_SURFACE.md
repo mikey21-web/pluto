@@ -104,6 +104,16 @@
 | GET | `/api/company/:id/forage/search` | `?source=&status=&capability=&q=` filterable museum query. |
 | POST | `/api/company/:id/forage/trends` | `{feeds[]}` → C90 predicted-trend ranking. |
 
+## Reality interface (1e)
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/company/:id/reality/channels` | List of 11 channels + connect state. |
+| POST | `/api/company/:id/reality/sync` | Push every connected provider's ground truth into world mirrors (`reality.<kind>`). |
+| POST | `/api/company/:id/reality/ingest` | Inbound webhook/message `{channel, from, body, meta?}` → provider records + bus `report`. |
+| POST | `/api/company/:id/reality/route` | Outbound action `{channel, op, payload?}` → routed to the provider. |
+| GET | `/api/company/:id/reality/mirrors` | World mirrors for all reality channels. |
+
 ## Strategy (§16)
 
 | Method | Path | Notes |

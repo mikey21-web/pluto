@@ -109,6 +109,10 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 `ForageEngine`: C85 `scavenge` background daemon (source feeds → evaluate → file museum), C86 `onDemand` gap-triggered search (museum-first), C87 `evaluate` (code quality/tests/license/security/maintainer activity/fit → adopt≥0.7/hold/reject<0.4), C88 `forkAndIntegrate` (adapt schema → sandbox-test → `registerVersion` → canary), C89 `search`/`museum` queryable archive over the new `foraged` table, C90 `predictTrends` (star velocity, freshness, cross-community tags). Meta-Agent is forage-first: `spawnForGap` queries the museum before synthesizing. Exposed as `runtime.forage` + `/forage/*` API.
 - `scavenge` `engine.ts:81` · `onDemand` `:105` · `evaluate` `:127` · `forkAndIntegrate` `:150` · `search` `:183` · `predictTrends` `:203`
 
+### 2.12g Reality Interface — `src/reality/engine.ts` (P1, PLAN 1e)
+`RealityInterface` + `buildRealityInterface`: every commercial channel (email, whatsapp, telegram, voice C17, calendar, payments, banking, signing, ecommerce, ads, contracts) is an `ExternalProvider` that `sync`s ground truth into the World Model mirror (`reality.<kind>` system + `status` fact), `ingest`s inbound, and `route`s outbound. Simulated providers run the full commercial cycle with zero credentials; real SDKs (Stripe, Twilio, DocuSign, Plaid, Cal.com…) swap in behind the `ExternalProvider` seam. `commercialCycleSteps` proves the entity operates every channel. Exposed as `runtime.reality` + `/reality/*` API.
+- `syncAll` `engine.ts:96` · `ingest` `:106` · `route` `:118` · `buildRealityInterface` `:186` · `commercialCycleSteps` `:220`
+
 ### 2.13 Runtime Composition — `src/runtime.ts`
 `createRuntime` wires all subsystems + adapter seams (`PlutoAdapters`) + default bus wiring (task.failed → learning).
 - `createRuntime` `runtime.ts:52` · `formOrganization` `:97` · `PlutoAdapters` `:18` · `meta` `:44`
@@ -123,8 +127,8 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 ### 2.15 Dashboard — `apps/dashboard/src/main.ts`
 945-line SPA (Command Center). Renders company switcher, KPIs, org graph (SVG), objectives, approvals, and a 17-view panel (`renderView` main.ts:205; nav :754). `dist/app.js` is prebuilt via esbuild.
 
-### 2.17 Tests — `test/` (23 files, 149 cases)
-`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`, `bus`, `synthesizer`, `canary`, `immune`, `forage`. `helpers.ts` isolates each runtime on a temp dir. Coverage: 94.67% line / 79.74% branch / 88.89% funcs.
+### 2.17 Tests — `test/` (24 files, 156 cases)
+`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`, `bus`, `synthesizer`, `canary`, `immune`, `forage`, `reality`. `helpers.ts` isolates each runtime on a temp dir. Coverage: 94.85% line / 79.96% branch / 89.09% funcs.
 
 ---
 
@@ -133,12 +137,12 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 | Location | Gap |
 |---|---|
 | `src/verify/engine.ts:42` | Verifiers are heuristic placeholders (`output_exists`, `no_hallucination` string scan). No real-world verifiers (email landed, calendar booked, payment received). |
-| `src/org/engines.ts:8` | Blueprints are **hardcoded** `agency` / `saas` — not data-driven, not extensible to e.g. real estate. |
-| `src/agents/llm.ts:60` | Mock driver ("works" deterministically but is fake intelligence). DeepSeek lane is the real one. No model router / no Brain Layer. |
-| Tool fabric | **Registry only. Zero runtime tool synthesis** (P2 missing). Frozen list at boot. |
-| Agent society | Agents are assigned work and run sequentially per task. **No typed agent-to-agent messaging beyond a dumb `sendMessage` store row** (P3 missing — bus exists as a table, not a protocol). |
-| World model | **Event log only. No projected/queryable state** (`world.what_is_true_about(X)` missing, P4). `Intel brief` is a read of tables, not a world model. |
-| Meta-cognition | **Zero introspection.** `LearningEngine` observes failures but never emits `capability_gap` or triggers primitive 1-4 (P5 missing). |
+| `src/agents/llm.ts:60` | Mock driver ("works" deterministically but is fake intelligence). DeepSeek lane is the real one. Model Router exists but routes a single driver today. |
+| Tool fabric | ✅ Runtime synthesis: `ToolSynthesizer` (node:vm) + `CapabilityFactory.registerVersion` + `CanaryDeploy`. Frozen list + synthesized tools. |
+| Agent society | ✅ Typed agent messaging: `MessageBus` contracts (request/offer/delegate/dispute/clarify/report/escalate/confess) over the durable messages table + EventBus. |
+| World model | ✅ `WorldModel` `src/world/engine.ts`: versioned facts, `whatIsTrueAbout`, mirrors/checksum drift, snapshot, asOf. |
+| Meta-cognition | ✅ `MetaAgent` (gap detect → spawn → grow) + `capability_gap` bus wiring + forage-first museum policy. |
+| Reality interface | ✅ `src/reality/engine.ts`: 11 commercial channels as `ExternalProvider`s mirroring into the world model; simulated (credential-free) + real-SDK swap-in seam. Prior `http.get`/`browser`/fs gateway retained. |
 | `PlutoAdapters` in `runtime.ts:18` | `bus` seam typed `never | null` — the pattern exists only for graph/scheduler. |
 | Sovereign layer | None (Phase 2). |
 | Immune system | ✅ `src/immune/engine.ts` — health monitor + classifier + code-fix + test-runner + promotion + audit + human gating + C5 Adversary. `ExecutionFabric` still retries; immune system now self-heals/redeploys. |
@@ -151,9 +155,9 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 - **Event bus** as durable event store: ✅ `events/bus.ts`
 - **Agent Runtime** (LLM + role + tools + memory): ✅ `agents/` + `workforce.ts`
 - **Execution & Control** (durable execution, retry, sandboxed fs, verification, governance, budget, observability): mostly ✅ `work/`, `plane/`, `verify/`
-- **Tool Fabric** (registry half): ⚠️ registry yes, synthesis no
-- **Reality Interface** (technical slice): ⚠️ `http.get` + `browser.open` + fs only. No email/WhatsApp/calendar/bank.
-- **Environmental note:** ARCHITECTURE.md diagrams assume `world/`, `bus/`, `meta/`, `immune/`, `sovereign/`, `brain/` — none exist yet; PLUTO today = kernel + execution + a slice of reality interface (matches VISION Part 8).
+- **Tool Fabric** (registry + runtime synthesis + versioning): ✅ `tools/`, `meta/synthesizer.ts`, `capability/factory.ts`
+- **Reality Interface** (11 commercial channels + http/browser/fs gateway): ✅ `src/reality/engine.ts`
+- **Environmental note:** ARCHITECTURE.md diagrams assume `world/`, `bus/`, `meta/`, `immune/`, `sovereign/`, `brain/` — all landed in Phase 1 (world, bus, meta, immune, brain, forage, reality); `sovereign/` remains (Phase 2).
 
 ---
 

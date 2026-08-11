@@ -22,6 +22,7 @@ import { ToolSynthesizer } from './meta/synthesizer.ts';
 import { CanaryDeploy } from './meta/canary.ts';
 import { ImmuneSystem } from './immune/engine.ts';
 import { ForageEngine } from './forage/engine.ts';
+import { RealityInterface, buildRealityInterface } from './reality/engine.ts';
 
 /** Adapter seams — every external system (MCP, Temporal, Graphiti, Letta, OpenHands…) plugs in behind these. */
 export interface PlutoAdapters {
@@ -58,6 +59,7 @@ export interface PlutoRuntime {
   canary: CanaryDeploy;
   immune: ImmuneSystem;
   forage: ForageEngine;
+  reality: RealityInterface;
   tools: ToolDef[];
   adapters: PlutoAdapters;
 }
@@ -78,6 +80,7 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
   const brain = new BrainLayer({ defaultDriver: makeDriver() });
   const world = new WorldModel(state.store);
   const messages = new MessageBus(state, bus);
+  const reality = buildRealityInterface(world, { bus: messages });
   const synthesizer = new ToolSynthesizer();
   const canary = new CanaryDeploy();
   const immune = new ImmuneSystem(state, { synth: synthesizer, canary });
@@ -98,7 +101,7 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
 
   const runtime: PlutoRuntime = {
     state, company, workforce, governance, resources, verifier, learning, factory,
-    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, messages, synthesizer, canary, immune, forage, tools,
+    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, messages, synthesizer, canary, immune, forage, reality, tools,
     adapters: {},
   };
 

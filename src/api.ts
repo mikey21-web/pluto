@@ -28,6 +28,7 @@ import { ToolSynthesizer } from './meta/synthesizer.ts';
 import { CanaryDeploy } from './meta/canary.ts';
 import { ImmuneSystem } from './immune/engine.ts';
 import { ForageEngine } from './forage/engine.ts';
+import { buildRealityInterface } from './reality/engine.ts';
 
 const DATA_DIR = process.env.PLUTO_DATA_DIR ?? './data';
 const PORT = Number(process.env.PLUTO_PORT ?? 4000);
@@ -64,6 +65,7 @@ const forage = new ForageEngine({
   store: state.store, synth: synthesizer, canary,
   registerVersion: (companyId, name) => capabilities.registerVersion(companyId, name),
 });
+const reality = buildRealityInterface(world, { bus: messages });
 
 let lastSeq = 0;
 const sseClients = new Set<import('node:http').ServerResponse>();
@@ -530,6 +532,27 @@ app.get('/api/company/:id/forage/search', (req, res) => {
 app.post('/api/company/:id/forage/trends', (req, res) => {
   const feeds: any[] = req.body?.feeds ?? [];
   res.json(forage.predictTrends(req.params.id, feeds));
+});
+
+// ---- reality interface (1e)
+app.get('/api/company/:id/reality/channels', (req, res) => {
+  res.json(reality.list());
+});
+app.post('/api/company/:id/reality/sync', (req, res) => {
+  res.json(reality.syncAll(req.params.id));
+});
+app.post('/api/company/:id/reality/ingest', (req, res) => {
+  res.json(reality.ingest(req.params.id, {
+    channel: req.body?.channel, from: req.body?.from ?? 'unknown', body: req.body?.body ?? '', meta: req.body?.meta ?? {},
+  }));
+});
+app.post('/api/company/:id/reality/route', (req, res) => {
+  res.json(reality.route(req.params.id, {
+    channel: req.body?.channel, op: req.body?.op ?? 'noop', payload: req.body?.payload ?? {},
+  }));
+});
+app.get('/api/company/:id/reality/mirrors', (req, res) => {
+  res.json(world.mirrors(req.params.id));
 });
 
 // ---- static dashboard

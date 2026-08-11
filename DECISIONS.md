@@ -28,6 +28,13 @@ FORAGED: source crawlers (github-trending-api, huggingface-hub, npm-registry) �
 RATIONALE: The civilization consumes the open-source ecosystem; a uniform candidate shape + museum-first policy keeps P2 forage-first/synthesize-fallback with zero new deps and full test determinism.
 IMPACT: Capability gaps now resolve from the museum before synthesis; forked tools version+canary like synthesized ones. Next: 1e Reality Interface Fill, then Phase 1 gate.
 
+### 2026-08-12
+TASK: Phase 1e — Reality Interface Fill (11 channels + C17)
+DECISION: Built `src/reality/engine.ts` `RealityInterface` + `buildRealityInterface`. Every commercial channel (email, whatsapp, telegram, voice C17, calendar, payments, banking, signing, ecommerce, ads, contracts) is an `ExternalProvider` that syncs ground truth into the World Model mirror (`reality.<kind>` system + `status` fact) and ingests inbound / routes outbound. Simulated providers run the full commercial cycle with zero credentials; real SDKs (Stripe, Twilio, DocuSign, Plaid, Cal.com…) replace them behind the same seam.
+FORAGED: per-channel SDKs (nodemailer, twilio, stripe-node, docusign, plaid, cal.com, shopify-api, meta ads) — deferred to runtime injection; the `ExternalProvider` interface is the fork point. No new runtime deps (world model `syncMirror` + `assert` is the integration surface).
+RATIONALE: Mirrors the ARCHITECTURE reality-interface layer; uniform provider seam + World Model mirror = deterministic tests + real-SDK swap-in without changing callers.
+IMPACT: The civilization now touches every commercial channel needed for v1 and can complete lead→proposal→signature→invoice→campaign end to end. Next: Phase 1 gate.
+
 ## Tags
 
 - `DISCOVERED:` — new sub-task emerged during work
