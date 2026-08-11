@@ -626,9 +626,39 @@ Real commercial channels for the civilization.
 ## PHASE 3 — Scale: Multi-Company Civilization (12 months)
 
 ### 3a. New Entities
-- [ ] Entity #2 (different domain — e.g., e-commerce brand)
-- [ ] Entity #3 (different domain — e.g., content business)
+- [x] Entity #2 (different domain — e-commerce brand) — `EcommerceRuntime` with Riya persona, multi-channel intake (WhatsApp/Telegram/Web/Instagram), product lead rubric, cart/checkout events, ad spend caps (₹800/day LLM, ₹0 ad spend approval gate), mini-Council, anchoring
+- [x] Entity #3 (different domain — content business) — `ContentRuntime` with Kavya persona, multi-channel intake (YouTube/Newsletter/Twitter/LinkedIn), creator/sponsor lead rubric, engagement/sponsor events, production spend caps (₹600/day LLM, ₹0 production approval gate), mini-Council, anchoring
 - [ ] Entity #4-N as opportunities emerge
+
+### 3b. Cross-Company Mechanisms
+- [ ] **[C8 — Reputation as capital]** Build reputation ledger (asset, tradable, transferable between companies)
+- [ ] **[C2 — Genetic inheritance]** Build gene mechanism (successful agent DNA seeds new companies)
+- [ ] **[C78 — Descendants]** Build lineage declaration (new companies as descendants of successful old ones, inheriting name/mission/resources)
+- [ ] **[C9 — Internal agent economy]** Build cognits (internal currency for inter-agent transactions)
+- [ ] Cross-company message bus (companies negotiate with each other)
+
+### 3c. Company Lifecycle
+- [ ] **[C1 — Evolutionary death]** Build kill contracts (unprofitable → self-terminate, capital returns)
+- [ ] **[C24 — Dormancy]** Build sleep/wake mechanism (zero cost when dormant, revives on demand)
+- [ ] Build company birth process (mission → shape → agents → deploy)
+- [ ] Build company death process (wind-down → archive learnings → transfer resources)
+
+### 3d. Memory & Wisdom
+- [ ] **[C4 — Failure Museum]** Build indexed, searchable archive of failures (tagged, embedded, queryable by new agents)
+- [ ] **[C32 — Retirement pool]** Build agent retirement (successful replaced agents preserved as read-only oracles)
+- [ ] **[C76 — Ancestor agents]** Extend retirement pool to be revered/consulted with ritual
+- [ ] **[C33 — Historian agent]** Build Historian (writes and maintains civilization biography)
+- [ ] **[C14 — Emergence Detector]** Build detector for behaviors nobody programmed (spontaneous coordination, novel strategy)
+
+### 3e. Human Interaction
+- [ ] **[C31 — Companies hire humans temporarily]** Build human-contractor hiring (Upwork/Fiverr API integration, task ticket, payment, close)
+- [ ] **[C42 — Agents model human]** Build persistent mental model of owner (preferences, risk tolerance, communication style)
+- [ ] **[C63 — Multi-decade customer memory]** Build customer relationship memory (details from years ago surface at next contact)
+
+### 3f. Basic Advanced Capabilities
+- [ ] **[C6 — Dream Cycle basic]** Build off-hours simulation (test hypothetical scenarios in a fork)
+
+**OUTCOME (3a):** Entity #2 (Ecommerce: Riya) and Entity #3 (Content: Kavya) deployed. 14 new tests; full suite 212 passing, coverage 95.91% line / 81.02% branch / 90.81% funcs. Each has: mini-Council, anchoring, persona, multi-channel intake with domain-specific rubric, event tracking, escalation rules, spend caps with approval gates.
 
 ### 3b. Cross-Company Mechanisms
 - [ ] **[C8 — Reputation as capital]** Build reputation ledger (asset, tradable, transferable between companies)

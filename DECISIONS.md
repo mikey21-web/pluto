@@ -15,6 +15,13 @@ IMPACT: [what this affects downstream]
 ```
 
 ### 2026-08-12
+TASK: Phase 3a — Entity #2 E-Commerce (Riya) + Entity #3 Content (Kavya)
+DECISION: Built `src/entity/ecommerce.ts` `EcommerceRuntime` and `src/entity/content.ts` `ContentRuntime`. Entity #2 (Riya): e-commerce concierge with multi-channel intake (WhatsApp/Telegram/Web/Instagram), product lead rubric (interest/budget/timeline/category), cart/checkout event tracking (view/add/checkout/purchase/abandon + recovery), spend caps (₹800/day LLM, ₹0 ad/influencer spend approval gate), escalation rules (ad_spend, high_value_order, return_dispute, inventory, constitution). Entity #3 (Kavya): content growth strategist with multi-channel intake (YouTube/Newsletter/Twitter/LinkedIn), creator/sponsor lead rubric, content event tracking (view/subscribe/engage/sponsor_inquiry/churn_risk), spend caps (₹600/day LLM, ₹0 production/paid_promotion approval gate), escalation rules (production_spend, brand_safety, creator_dispute, copyright, constitution). Both: C96 mini-Council, C100 cryptographic anchoring, C18 persistent persona, wired `runtime.ecommerce` + `runtime.content`.
+FORAGED: e-commerce CRM / creator economy platforms — rejected; domain-specific rubrics + event models + approval gates keep zero deps and deterministic tests. Persona consistency enforced via single `persona()` return per entity.
+RATIONALE: Multi-company civilization needs diverse domain entities that share governance (Sovereign, Constitution, Ethics) but operate with domain-specific logic. The entity runtime pattern (entity.ts → ecommerce.ts → content.ts) proves the template scales.
+IMPACT: Three live entities (Priya Realty, Riya E-Commerce, Kavya Content) operating under shared Sovereign + Constitution + Ethics + 90-day clock. 14 tests added; 212 passing, coverage 95.91/81.02/90.81. Next: 3b Cross-Company Mechanisms (C8 Reputation, C2 Genetic Inheritance, C78 Descendants, C9 Cognits, cross-company bus).
+
+### 2026-08-12
 TASK: Phase 2 Gate — Beachhead Complete
 DECISION: Phase 2 gate declared PASSED. All 2a-2e milestones delivered and tested:
 - 2a Sovereign Layer: company factory, cross-company memory, per-company + global kill switches, per-action rollback registry, C29 deadman's switch, sovereign digest, multi-layer approval routing, C50 multi-owner scaffolding.
