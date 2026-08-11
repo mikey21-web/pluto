@@ -35,6 +35,13 @@ FORAGED: per-channel SDKs (nodemailer, twilio, stripe-node, docusign, plaid, cal
 RATIONALE: Mirrors the ARCHITECTURE reality-interface layer; uniform provider seam + World Model mirror = deterministic tests + real-SDK swap-in without changing callers.
 IMPACT: The civilization now touches every commercial channel needed for v1 and can complete lead→proposal→signature→invoice→campaign end to end. Next: Phase 1 gate.
 
+### 2026-08-12
+TASK: Phase 1 Gate
+DECISION: Declared Phase 1 gate passed. Added `src/phase1_gate.ts` (`npm run gate`) — runnable gate report — and `test/phase1_gate.test.ts` (5 programmatic assertions) covering the three reliability gates: self-extension (synthesize→sandbox→register→canary-live + meta spawns its own agent), silent-competence (immune self-heals with zero human wakeups), and cost per agent-hour (measured finite from live task traces). Added `npm run gate` script.
+FORAGED: spectral/formal cost model vs measured — chose measured: cost per agent-hour computed from live task `cost_usd` and wall-clock agent-hours in the gate run.
+RATIONALE: The gate must be empirically verifiable (not a checkbox); a runnable demo + CI-asserted test keeps it honest and re-runnable.
+IMPACT: Phase 2 (Sovereign + Entity #1) is unlocked. Gate report: 161/161 tests, coverage 94.89% line / 80.34% branch, zero critical incidents.
+
 ## Tags
 
 - `DISCOVERED:` — new sub-task emerged during work

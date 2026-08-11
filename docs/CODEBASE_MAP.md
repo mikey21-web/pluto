@@ -127,8 +127,8 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 ### 2.15 Dashboard — `apps/dashboard/src/main.ts`
 945-line SPA (Command Center). Renders company switcher, KPIs, org graph (SVG), objectives, approvals, and a 17-view panel (`renderView` main.ts:205; nav :754). `dist/app.js` is prebuilt via esbuild.
 
-### 2.17 Tests — `test/` (24 files, 156 cases)
-`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`, `bus`, `synthesizer`, `canary`, `immune`, `forage`, `reality`. `helpers.ts` isolates each runtime on a temp dir. Coverage: 94.85% line / 79.96% branch / 89.09% funcs.
+### 2.17 Tests — `test/` (25 files, 161 cases)
+`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`, `bus`, `synthesizer`, `canary`, `immune`, `forage`, `reality`, `phase1_gate`. `helpers.ts` isolates each runtime on a temp dir. Coverage: 94.89% line / 80.34% branch / 89.09% funcs.
 
 ---
 
