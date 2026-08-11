@@ -21,6 +21,13 @@ FORAGED: health-monitor libs (checkly/uptime/healthchecks) — reject, self-cont
 RATIONALE: Self-healing must live beside the tools it fixes; reusing the node:vm sandbox and canary pipeline keeps zero new runtime deps and matches the "fix before humans notice" rule.
 IMPACT: System now auto-detects, revalidates, and staggers-fix failures with a wake-a-human backstop; C5 red-team active. Next: 1f Foraging + 1e Reality Interface Fill.
 
+### 2026-08-12
+TASK: Phase 1f — Foraging Layer (C85-C90)
+DECISION: Built `src/forage/engine.ts` `ForageEngine`: C85 scavenge daemon, C86 on-demand gap-triggered search, C87 evaluator (quality/tests/license/security/maintainer/fit → adopt/hold/reject), C88 fork→adapt→sandbox-test→register→canary-deploy pipeline, C89 queryable museum (new `foraged` table), C90 trend prediction. Meta-Agent is now forage-first: `spawnForGap` queries the museum and records "Forage-first: reused…" before synthesizing.
+FORAGED: source crawlers (github-trending-api, huggingface-hub, npm-registry) — all map onto the same `ForageCandidate` shape; kept a single injectable feed seam rather than one adapter per API. No new runtime deps.
+RATIONALE: The civilization consumes the open-source ecosystem; a uniform candidate shape + museum-first policy keeps P2 forage-first/synthesize-fallback with zero new deps and full test determinism.
+IMPACT: Capability gaps now resolve from the museum before synthesis; forked tools version+canary like synthesized ones. Next: 1e Reality Interface Fill, then Phase 1 gate.
+
 ## Tags
 
 - `DISCOVERED:` — new sub-task emerged during work

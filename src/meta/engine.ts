@@ -81,12 +81,15 @@ export class MetaAgent {
   private driver: LlmDriver;
   private tools: ToolDef[];
   private factory: AgentFactory;
+  /** Forage-first seam (P2 becomes forage-first, synthesize-fallback): an optional museum to consult before writing a new tool/agent. */
+  private forage?: { museum(companyId: string): Array<{ name: string; description: string; source: string }> };
 
-  constructor(state: PlutoState, opts: { driver?: LlmDriver; tools?: ToolDef[] } = {}) {
+  constructor(state: PlutoState, opts: { driver?: LlmDriver; tools?: ToolDef[]; forage?: MetaAgent['forage'] } = {}) {
     this.state = state;
     this.driver = opts.driver ?? makeDriver();
     this.tools = opts.tools ?? [];
     this.factory = new AgentFactory(state);
+    this.forage = opts.forage;
   }
 
   /** Gap detector: failed tasks with unfamiliar kinds + unknown tool calls. */
@@ -167,9 +170,18 @@ export class MetaAgent {
     return agent;
   }
 
-  /** Detect + generate + spawn in one call (the API / test path). */
+  /** Detect + generate + spawn in one call (the API / test path). Forage-first: consults the museum before writing new. */
   async spawnForGap(companyId: string, capability: string, reason = 'explicit request'): Promise<{ agent: Agent; spec: AgentSpec; gap: CapabilityGap }> {
     const gap: CapabilityGap = { capability, reason, source_task: null, evidence: '' };
+    const museumHits = this.forage?.museum(companyId) ?? [];
+    const forageHit = museumHits.find(m =>
+      `${m.name} ${m.description}`.toLowerCase().includes(capability.toLowerCase()),
+    );
+    if (forageHit) {
+      this.state.remember(companyId, `Forage-first: reused foraged candidate "${forageHit.name}" (${forageHit.source}) instead of synthesizing new for gap "${capability}".`, {
+        type: 'organizational', owner: 'meta',
+      });
+    }
     const spec = await this.generateSpec(companyId, gap);
     const agent = this.spawn(companyId, spec);
     return { agent, spec, gap };

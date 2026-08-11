@@ -105,6 +105,10 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 `ImmuneSystem`: health monitoring per agent/tool (`agentHealth`/`toolHealth` over tasks+traces), failure classifier (`transient`/`config`/`logic`/`missing`/`external`), code-fix via ToolSynthesizer revalidation (`fixTool` self-resolves transient, escalates unfixable logic to a human once), test-runner (`validate` synthetic + historical replay in the sandbox), gradual promotion reusing CanaryDeploy, detailed audit log (`RepairLog`), human-notification gating (`humanWakeupsCount`), and C5 Adversary (`adversaryRun` red-teams tool surfaces → patch). Exposed as `runtime.immune` + `/immune/*` API.
 - `agentHealth` `engine.ts:47` · `classify` `:80` · `fixTool` `:103` · `validate` `:164` · `beginPromotion` `:177` · `auditLog` `:186` · `adversaryRun` `:203`
 
+### 2.12f Foraging Layer — `src/forage/engine.ts` (P1, PLAN 1f, C85-C90)
+`ForageEngine`: C85 `scavenge` background daemon (source feeds → evaluate → file museum), C86 `onDemand` gap-triggered search (museum-first), C87 `evaluate` (code quality/tests/license/security/maintainer activity/fit → adopt≥0.7/hold/reject<0.4), C88 `forkAndIntegrate` (adapt schema → sandbox-test → `registerVersion` → canary), C89 `search`/`museum` queryable archive over the new `foraged` table, C90 `predictTrends` (star velocity, freshness, cross-community tags). Meta-Agent is forage-first: `spawnForGap` queries the museum before synthesizing. Exposed as `runtime.forage` + `/forage/*` API.
+- `scavenge` `engine.ts:81` · `onDemand` `:105` · `evaluate` `:127` · `forkAndIntegrate` `:150` · `search` `:183` · `predictTrends` `:203`
+
 ### 2.13 Runtime Composition — `src/runtime.ts`
 `createRuntime` wires all subsystems + adapter seams (`PlutoAdapters`) + default bus wiring (task.failed → learning).
 - `createRuntime` `runtime.ts:52` · `formOrganization` `:97` · `PlutoAdapters` `:18` · `meta` `:44`
@@ -119,8 +123,8 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 ### 2.15 Dashboard — `apps/dashboard/src/main.ts`
 945-line SPA (Command Center). Renders company switcher, KPIs, org graph (SVG), objectives, approvals, and a 17-view panel (`renderView` main.ts:205; nav :754). `dist/app.js` is prebuilt via esbuild.
 
-### 2.17 Tests — `test/` (22 files, 141 cases)
-`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`, `bus`, `synthesizer`, `canary`, `immune`. `helpers.ts` isolates each runtime on a temp dir. Coverage: 94.46% line / 80.80% branch / 88.91% funcs.
+### 2.17 Tests — `test/` (23 files, 149 cases)
+`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`, `bus`, `synthesizer`, `canary`, `immune`, `forage`. `helpers.ts` isolates each runtime on a temp dir. Coverage: 94.67% line / 79.74% branch / 88.89% funcs.
 
 ---
 

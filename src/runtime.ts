@@ -21,6 +21,7 @@ import { MessageBus } from './bus/engine.ts';
 import { ToolSynthesizer } from './meta/synthesizer.ts';
 import { CanaryDeploy } from './meta/canary.ts';
 import { ImmuneSystem } from './immune/engine.ts';
+import { ForageEngine } from './forage/engine.ts';
 
 /** Adapter seams — every external system (MCP, Temporal, Graphiti, Letta, OpenHands…) plugs in behind these. */
 export interface PlutoAdapters {
@@ -56,6 +57,7 @@ export interface PlutoRuntime {
   synthesizer: ToolSynthesizer;
   canary: CanaryDeploy;
   immune: ImmuneSystem;
+  forage: ForageEngine;
   tools: ToolDef[];
   adapters: PlutoAdapters;
 }
@@ -83,16 +85,20 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
   const workGraph = new WorkGraphEngine(state);
   const fabric = new ExecutionFabric(state);
   const capabilities = new CapabilityFactory(state);
+  const forage = new ForageEngine({
+    store: state.store, synth: synthesizer, canary,
+    registerVersion: (companyId, name) => capabilities.registerVersion(companyId, name),
+  });
   const intel = new CompanyIntelligence(state);
   const policies = new PolicyEngine(state);
-  const meta = new MetaAgent(state, { tools });
+  const meta = new MetaAgent(state, { tools, forage });
 
   resources.defaults(company.id);
   seedCapabilities(state, company.id);
 
   const runtime: PlutoRuntime = {
     state, company, workforce, governance, resources, verifier, learning, factory,
-    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, messages, synthesizer, canary, immune, tools,
+    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, messages, synthesizer, canary, immune, forage, tools,
     adapters: {},
   };
 

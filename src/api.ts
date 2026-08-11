@@ -27,6 +27,7 @@ import { MessageBus } from './bus/engine.ts';
 import { ToolSynthesizer } from './meta/synthesizer.ts';
 import { CanaryDeploy } from './meta/canary.ts';
 import { ImmuneSystem } from './immune/engine.ts';
+import { ForageEngine } from './forage/engine.ts';
 
 const DATA_DIR = process.env.PLUTO_DATA_DIR ?? './data';
 const PORT = Number(process.env.PLUTO_PORT ?? 4000);
@@ -59,6 +60,10 @@ const messages = new MessageBus(state, bus);
 const synthesizer = new ToolSynthesizer();
 const canary = new CanaryDeploy();
 const immune = new ImmuneSystem(state, { synth: synthesizer, canary });
+const forage = new ForageEngine({
+  store: state.store, synth: synthesizer, canary,
+  registerVersion: (companyId, name) => capabilities.registerVersion(companyId, name),
+});
 
 let lastSeq = 0;
 const sseClients = new Set<import('node:http').ServerResponse>();
@@ -487,6 +492,44 @@ app.post('/api/company/:id/immune/adversary', (req, res) => {
 });
 app.get('/api/company/:id/immune/adversary/findings', (req, res) => {
   res.json(immune.adversaryFindings());
+});
+
+// ---- foraging layer (1f)
+app.post('/api/company/:id/forage/scavenge', (req, res) => {
+  const feeds: any[] = req.body?.feeds ?? [];
+  res.json(forage.scavenge(req.params.id, feeds));
+});
+app.post('/api/company/:id/forage/on-demand', (req, res) => {
+  const feeds: any[] = req.body?.feeds ?? [];
+  res.json(forage.onDemand(req.params.id, String(req.body?.capability ?? ''), feeds));
+});
+app.post('/api/company/:id/forage/evaluate', (req, res) => {
+  res.json(forage.evaluate(req.body?.candidate ?? {}));
+});
+app.post('/api/company/:id/forage/integrate', async (req, res) => {
+  const r = await forage.forkAndIntegrate({
+    company_id: req.params.id,
+    candidate: req.body?.candidate ?? {},
+    adaptedSpec: req.body?.spec ?? {},
+    tests: req.body?.tests ?? [],
+    capabilityName: req.body?.capabilityName,
+  });
+  res.json(r);
+});
+app.get('/api/company/:id/forage/museum', (req, res) => {
+  res.json(forage.museum(req.params.id));
+});
+app.get('/api/company/:id/forage/search', (req, res) => {
+  res.json(forage.search(req.params.id, {
+    source: req.query.source as string | undefined,
+    status: req.query.status as string | undefined,
+    q: req.query.q as string | undefined,
+    capability: req.query.capability as string | undefined,
+  }));
+});
+app.post('/api/company/:id/forage/trends', (req, res) => {
+  const feeds: any[] = req.body?.feeds ?? [];
+  res.json(forage.predictTrends(req.params.id, feeds));
 });
 
 // ---- static dashboard

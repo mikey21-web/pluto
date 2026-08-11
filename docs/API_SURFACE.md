@@ -92,6 +92,18 @@
 | POST | `/api/company/:id/immune/adversary` | `{candidate, probes[]}` → C5 red-team run `{vulnerable, findings, patch}`. |
 | GET | `/api/company/:id/immune/adversary/findings` | Adversary finding log. |
 
+## Foraging layer (1f)
+
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/api/company/:id/forage/scavenge` | `{feeds[]}` → C85 daemon: evaluate each and file as candidate/rejected/museum in the `foraged` table. |
+| POST | `/api/company/:id/forage/on-demand` | `{capability, feeds[]}` → C86: museum-first, else scavenge for a capability gap. |
+| POST | `/api/company/:id/forage/evaluate` | `{candidate}` → C87 eval report `{code_quality, has_tests, license, security, maintainer_activity, fit, score, verdict}`. |
+| POST | `/api/company/:id/forage/integrate` | `{candidate, spec, tests[], capabilityName?}` → C88: sandbox-test → register capability version → canary → `{ok, canaryId, reason}`. |
+| GET | `/api/company/:id/forage/museum` | C89 all archived candidates. |
+| GET | `/api/company/:id/forage/search` | `?source=&status=&capability=&q=` filterable museum query. |
+| POST | `/api/company/:id/forage/trends` | `{feeds[]}` → C90 predicted-trend ranking. |
+
 ## Strategy (§16)
 
 | Method | Path | Notes |

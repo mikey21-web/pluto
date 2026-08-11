@@ -128,6 +128,12 @@ CREATE TABLE IF NOT EXISTS world_mirrors (
   id TEXT PRIMARY KEY, company_id TEXT, system TEXT, entity TEXT,
   payload TEXT, checksum TEXT, status TEXT, last_synced TEXT, drift INTEGER
 );
+CREATE TABLE IF NOT EXISTS foraged (
+  id TEXT PRIMARY KEY, company_id TEXT, source TEXT, repo TEXT,
+  name TEXT, description TEXT, url TEXT, license TEXT, language TEXT,
+  stars INTEGER, updated_at TEXT, tags TEXT, status TEXT, seed TEXT,
+  score REAL, notes TEXT, foraged_at TEXT
+);
 CREATE INDEX IF NOT EXISTS idx_events_company ON events(company_id, seq);
 CREATE INDEX IF NOT EXISTS idx_events_type ON events(company_id, type);
 CREATE INDEX IF NOT EXISTS idx_tasks_company ON tasks(company_id, status);

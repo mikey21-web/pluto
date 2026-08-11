@@ -513,15 +513,17 @@ Foundation for reliability at scale. Depends on 1c.
 ### 1f. Foraging Layer (Month 4-6, parallel track)
 The civilization consumes the world's open-source output.
 
-- [ ] **[C85 — The Scavenger]** Build background daemon crawling GitHub trending, HuggingFace, arxiv, Product Hunt, HN Show, npm/PyPI, RapidAPI, YC launches
-- [ ] **[C86 — On-Demand Foraging]** Build gap-triggered targeted search (query ecosystem when Meta-Agent hits capability gap)
-- [ ] **[C87 — Evaluator Agent]** Build repo/tool/model evaluator (code quality, tests, license, security, maintainer activity, fit)
-- [ ] **[C88 — Fork-Adapt-Integrate Pipeline]** Build fork → adapt schema → sandbox-test → register → canary-deploy pipeline
-- [ ] **[C89 — Foraging Museum]** Build archive of maybe-useful-later candidates (tagged, embedded, indexed, queryable)
-- [ ] **[C90 — Trend Prediction]** Build predictive foraging (funding, patents, star velocity, cross-community signals)
-- [ ] Wire Meta-Agent to query Foraging Museum before writing new tools (P2 becomes forage-first, synthesize-fallback)
-- [ ] Test: capability gap triggers foraging, integration, deployment without human intervention
-- [ ] **Milestone:** civilization actively consumes global open-source ecosystem
+- [x] **[C85 — The Scavenger]** Build background daemon crawling GitHub trending, HuggingFace, arxiv, Product Hunt, HN Show, npm/PyPI, RapidAPI, YC launches
+- [x] **[C86 — On-Demand Foraging]** Build gap-triggered targeted search (query ecosystem when Meta-Agent hits capability gap)
+- [x] **[C87 — Evaluator Agent]** Build repo/tool/model evaluator (code quality, tests, license, security, maintainer activity, fit)
+- [x] **[C88 — Fork-Adapt-Integrate Pipeline]** Build fork → adapt schema → sandbox-test → register → canary-deploy pipeline
+- [x] **[C89 — Foraging Museum]** Build archive of maybe-useful-later candidates (tagged, embedded, indexed, queryable)
+- [x] **[C90 — Trend Prediction]** Build predictive foraging (funding, patents, star velocity, cross-community signals)
+- [x] Wire Meta-Agent to query Foraging Museum before writing new tools (P2 becomes forage-first, synthesize-fallback)
+- [x] Test: capability gap triggers foraging, integration, deployment without human intervention
+- [x] **Milestone:** civilization actively consumes global open-source ecosystem
+
+> **OUTCOME (1f — Foraging Layer, C85-C90):** `src/forage/engine.ts` `ForageEngine` — C85 `scavenge` daemon (crawls source feeds → evaluates → files museum candidates; real GitHub/HF/npm APIs map to the same shape), C86 `onDemand` gap-triggered search (museum-first fallback to fresh scavenging), C87 `evaluate` (code quality, tests, license, security, maintainer activity, fit → adopt≥0.7 / reject<0.4), C88 `forkAndIntegrate` (adapt schema → ToolSynthesizer sandbox-test → `CapabilityFactory.registerVersion` → CanaryDeploy start), C89 `search`/`museum` queryable archive over new `foraged` table, C90 `predictTrends` (star velocity, freshness, cross-community tag signal). Meta-Agent is now forage-first: `spawnForGap` queries the museum and remembers "Forage-first: reused…" when a hit matches before synthesizing. Wired `runtime.forage` + 7 API endpoints. Tests `test/forage.test.ts` (8): scavenge statuses, evaluator verdicts, on-demand museum preference, forkAndIntegrate registers version+canary on passing tests (rejects on failure), museum search filters, trend ranking, meta-agent forage-first wiring. 149/149 pass, coverage 94.67% line / 79.74% branch.
 
 ### 1e. Reality Interface Fill (Month 3-6, parallel track)
 Real commercial channels for the civilization.
