@@ -1,0 +1,106 @@
+import { PlutoState } from './kernel/state.ts';
+import type { Company, ToolDef } from './kernel/types.ts';
+import { OrgEngine, StrategyEngine } from './org/engines.ts';
+import { Workforce } from './org/workforce.ts';
+import type { WorkItem } from './org/workforce.ts';
+import { Governance, describeOrg } from './plane/governance.ts';
+import { ResourceEngine } from './plane/resources.ts';
+import { LearningEngine, AgentFactory } from './learn/engine.ts';
+import { VerificationEngine, defaultVerifiers } from './verify/engine.ts';
+import { EventBus } from './events/bus.ts';
+import { WorkGraphEngine } from './work/graph.ts';
+import { ExecutionFabric } from './work/fabric.ts';
+import { CapabilityFactory, seedCapabilities } from './capability/factory.ts';
+import { CompanyIntelligence } from './intel/engine.ts';
+import { PolicyEngine } from './plane/policy.ts';
+
+/** Adapter seams — every external system (MCP, Temporal, Graphiti, Letta, OpenHands…) plugs in behind these. */
+export interface PlutoAdapters {
+  /** Replaces the built-in graph store with Graphiti or any graph backend. */
+  graph?: { nodes(): unknown[]; edges(): unknown[]; upsertNode(id: string, kind: string, name: string, props: Record<string, unknown>): void };
+  /** Replaces in-process event fan-out with a durable event store (e.g. Postgres outbox). */
+  bus?: never | null;
+  /** Replaces ExecutionFabric's inline runner with Temporal. */
+  scheduler?: { enqueue(jobId: string): Promise<void> } | null;
+}
+
+export interface PlutoRuntime {
+  state: PlutoState;
+  company: Company;
+  workforce: Workforce;
+  governance: Governance;
+  resources: ResourceEngine;
+  verifier: VerificationEngine;
+  learning: LearningEngine;
+  factory: AgentFactory;
+  org: OrgEngine;
+  strategy: StrategyEngine;
+  bus: EventBus;
+  workGraph: WorkGraphEngine;
+  fabric: ExecutionFabric;
+  capabilities: CapabilityFactory;
+  intel: CompanyIntelligence;
+  policies: PolicyEngine;
+  tools: ToolDef[];
+  adapters: PlutoAdapters;
+}
+
+/** Bootstraps a company from an intent and wires all subsystems. */
+export function createRuntime(dataDir: string, name: string, mission: string, tools: ToolDef[]): PlutoRuntime {
+  const state = PlutoState.open(dataDir);
+  const company = state.repos.createCompany(name, mission);
+  const org = new OrgEngine(state);
+  const strategy = new StrategyEngine(state);
+  const governance = new Governance(state);
+  const resources = new ResourceEngine(state);
+  const learning = new LearningEngine(state);
+  const factory = new AgentFactory(state);
+  const verifier = new VerificationEngine(state);
+  for (const [k, fn] of defaultVerifiers()) verifier.register(k, fn);
+  const bus = new EventBus(state);
+  const workforce = new Workforce(state, tools);
+  const workGraph = new WorkGraphEngine(state);
+  const fabric = new ExecutionFabric(state);
+  const capabilities = new CapabilityFactory(state);
+  const intel = new CompanyIntelligence(state);
+  const policies = new PolicyEngine(state);
+
+  resources.defaults(company.id);
+  seedCapabilities(state, company.id);
+
+  const runtime: PlutoRuntime = {
+    state, company, workforce, governance, resources, verifier, learning, factory,
+    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, tools,
+    adapters: {},
+  };
+
+  // default wiring: capability needs create agents pre-emptively on company formation
+  bus.on(['task.failed'], (ev) => {
+    if (ev.entity_kind === 'task' && ev.entity_id) {
+      const t = state.repos.task(ev.entity_id);
+      if (t) learning.observeTaskOutcome(t, false);
+    }
+  });
+
+  state.companyEvent(company, 'company.created', { mission });
+  return runtime;
+}
+
+export function orgSummary(r: PlutoRuntime): string {
+  return describeOrg(r.state, r.company.id);
+}
+
+/** The full organization formation: intent -> intelligence -> org -> cascade. */
+export function formOrganization(r: PlutoRuntime, objective: string) {
+  const { deps, objective: missionObj } = r.org.build(r.company, objective);
+  const cascades = r.strategy.cascade(r.company.id, missionObj, deps);
+  r.state.repos.logDecision({
+    company_id: r.company.id, kind: 'org_design', summary: `Formed organization for: ${objective}`,
+    reasoning: 'Objective-to-organization mapping produced departments and managers, each with scoped tools and permissions.',
+    alternatives: deps.map(d => d.name),
+    confidence: 0.85, actor_id: 'pluto-hq',
+  });
+  return { deps, missionObj, cascades };
+}
+
+export type { WorkItem };

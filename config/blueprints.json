@@ -1,0 +1,35 @@
+{
+  "default": "services",
+  "blueprints": {
+    "services": {
+      "keywords": [],
+      "departments": [
+        { "name": "Intelligence", "kind": "research", "manager": { "role": "market_researcher", "tools": ["http.get", "browser.open", "memory.write", "memory.recall", "graph.lookup"], "permissions": ["read_research"] } },
+        { "name": "Sales", "kind": "revenue", "manager": { "role": "sales_manager", "tools": ["memory.write", "memory.recall", "graph.lookup", "fs.write", "http.get"], "permissions": ["send_outreach", "book_meetings", "spend_up_to_500"] } },
+        { "name": "Marketing", "kind": "growth", "manager": { "role": "growth_lead", "tools": ["memory.write", "memory.recall", "fs.write", "http.get"], "permissions": ["create_content", "spend_up_to_300"] } },
+        { "name": "Delivery", "kind": "operations", "manager": { "role": "delivery_manager", "tools": ["memory.write", "memory.recall", "fs.write", "fs.read", "fs.deliver"], "permissions": ["scaffold_projects", "approve_artifacts"] } },
+        { "name": "Finance", "kind": "backoffice", "manager": { "role": "finance_agent", "tools": ["memory.write", "memory.recall", "fs.write", "fs.invoice"], "permissions": ["create_invoices", "track_budget", "reconcile"] } }
+      ]
+    },
+    "saas": {
+      "keywords": ["ecommerce", "shop", "store", "retail", "saas", "mobile app"],
+      "departments": [
+        { "name": "Intelligence", "kind": "research", "manager": { "role": "market_researcher", "tools": ["http.get", "browser.open", "memory.write", "memory.recall", "graph.lookup"], "permissions": ["read_research"] } },
+        { "name": "Product", "kind": "product", "manager": { "role": "product_manager", "tools": ["memory.write", "memory.recall", "fs.write"], "permissions": ["define_spec"] } },
+        { "name": "Engineering", "kind": "engineering", "manager": { "role": "engineering_lead", "tools": ["memory.write", "memory.recall", "fs.write", "fs.read"], "permissions": ["write_code", "deploy_staging"] } },
+        { "name": "Revenue", "kind": "revenue", "manager": { "role": "sales_manager", "tools": ["memory.write", "memory.recall", "http.get"], "permissions": ["send_outreach", "spend_up_to_500"] } },
+        { "name": "Customer", "kind": "success", "manager": { "role": "success_agent", "tools": ["memory.write", "memory.recall"], "permissions": ["respond_support"] } },
+        { "name": "Finance", "kind": "backoffice", "manager": { "role": "finance_agent", "tools": ["memory.write", "memory.recall", "fs.write", "fs.invoice"], "permissions": ["create_invoices", "track_budget"] } }
+      ]
+    },
+    "real_estate": {
+      "keywords": ["real estate", "realestate", "property", "apartment", "housing", "broker", "realtor", "builders", "hyderabad"],
+      "departments": [
+        { "name": "Intelligence", "kind": "research", "manager": { "role": "market_researcher", "tools": ["http.get", "browser.open", "memory.write", "memory.recall", "graph.lookup"], "permissions": ["read_research"] } },
+        { "name": "Sales", "kind": "revenue", "manager": { "role": "lead_qualifier", "tools": ["memory.write", "memory.recall", "graph.lookup", "fs.write", "http.get"], "permissions": ["qualify_leads", "book_meetings", "send_outreach", "spend_up_to_500"] } },
+        { "name": "Client Success", "kind": "success", "manager": { "role": "client_success_agent", "tools": ["memory.write", "memory.recall"], "permissions": ["respond_support", "schedule_viewings"] } },
+        { "name": "Finance", "kind": "backoffice", "manager": { "role": "finance_agent", "tools": ["memory.write", "memory.recall", "fs.write", "fs.invoice"], "permissions": ["create_invoices", "track_budget"] } }
+      ]
+    }
+  }
+}
