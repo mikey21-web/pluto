@@ -153,8 +153,8 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 `bus`, `synthesizer`, `canary`, `immune`, `forage`, `reality`, `sovereign`, `civilization`, `entity`, `grace`, `ops`, `phase1_gate`. `helpers.ts` isolates 
 each runtime on a 
 temp dir. Coverage: 
-95.72% line 
-/ 80.55% branch 
+95.77% line 
+/ 80.66% branch 
 / 90.87% funcs.
 
 ---

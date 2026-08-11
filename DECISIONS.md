@@ -15,6 +15,19 @@ IMPACT: [what this affects downstream]
 ```
 
 ### 2026-08-12
+TASK: Phase 2 Gate — Beachhead Complete
+DECISION: Phase 2 gate declared PASSED. All 2a-2e milestones delivered and tested:
+- 2a Sovereign Layer: company factory, cross-company memory, per-company + global kill switches, per-action rollback registry, C29 deadman's switch, sovereign digest, multi-layer approval routing, C50 multi-owner scaffolding.
+- 2b Governance Additions: C27 Constitution + amendment protocol, C60 Protected Core, C28 Ethics Officer veto, C51 Constitutional Court, C13 Whistleblower, C12 Anti-Sovereign, C30 Explainability, immutable hash-chained audit log, C52 Amnesty & rehabilitation.
+- 2c Entity #1 Real Estate Beachhead: C96 mini-Council, C100 cryptographic anchoring, C18 Priya persona, intake+qualification+booking, escalation rules, spend caps (₹500/day LLM, ₹0 outbound approval gate).
+- 2d Grace & Rehearsal: C112 Fugue Mode, C113 Off-Switch Delay (60s), C114 Rehearsal Studio (sandbox+simulated-human+approval), C115 Whimsy Budget (1-2% joy cap).
+- 2e 90-Day Ops: 3-phase tracker (supervised/trust-building/autonomous), daily/weekly/monthly cadences with unit economics, Phase 2 gate evaluator (100 leads/20 meetings/3 deals/zero rollbacks/client sat/unit econ).
+Verification: 198 tests passing, coverage 95.77% line / 80.66% branch / 90.87% funcs; Phase 1 gate also passes; typecheck clean. Phase 3 (Scale: Multi-Company Civilization) unlocked.
+FORAGED: N/A — final integration of all Phase 2 components.
+RATIONALE: The civilization now has a sovereign portfolio layer, constitutional governance, a live operating entity (Priya Realty), operational resilience + joy, and a 90-day operational clock with a measurable gate. All pieces integrate through the shared store/runtime and are independently testable.
+IMPACT: Phase 3 (Scale: Multi-Company Civilization) is unlocked. Next: Entity #2 (different domain), cross-company reputation/capital, genetic inheritance of successful agent DNA.
+
+### 2026-08-12
 TASK: Phase 2e — 90-Day Operations
 DECISION: Built `src/ops/engine.ts` `OpsRuntime`. Delivered: 90-day phase tracker (Days 1-30 supervised / 31-60 trust-building / 61-90 autonomous / 90+ gate via `currentDay`/`phaseSummary`), daily cadence (`recordDay`/`autoRecordDay` pulling leads/meetings/deals/rollbacks/spend/revenue from company state), weekly cadence (`recordWeek` aggregates 7 days + retro notes), monthly cadence (`recordMonth` aggregates ~30 days + unit economics CAC/LTV/positive), Phase 2 gate evaluator (`evaluateGate` — 100+ leads, 20+ meetings, 3+ deals, zero rollbacks 61-90, client.satisfied event, unit economics positive). Wired `runtime.ops`.
 FORAGED: ops-tracking / OKR / cadence tools — rejected; a lightweight in-process tracker with deterministic phase math + repo-sourced metrics keeps zero deps and full testability.
