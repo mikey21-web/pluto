@@ -1,0 +1,24 @@
+{
+  "name": "pluto",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "PLUTO — Autonomous Company Operating System",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "demo": "node src/demo.ts",
+    "api": "node src/api.ts",
+    "operate": "node src/operate.ts",
+    "test": "node --test test/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "build:dashboard": "esbuild apps/dashboard/src/main.ts --bundle --outfile=apps/dashboard/dist/app.js --minify",
+    "start": "node src/api.ts"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.0",
+    "esbuild": "^0.25.0",
+    "express": "^5.1.0",
+    "playwright": "^1.62.1",
+    "typescript": "^5.8.0"
+  }
+}
