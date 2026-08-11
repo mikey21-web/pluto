@@ -595,10 +595,11 @@ Real commercial channels for the civilization.
 - **OUTCOME:** Entity #1 delivered as `EntityRuntime` (src/entity/engine.ts). 7 new tests (test/entity.test.ts); full suite 186 passing, coverage 95.70% line / 80.52% branch / 90.94% funcs. Priya persona deployed; intake qualifies leads via rubric, books viewings, escalates outbound spend through owner approval gate; mini-Council + anchor chain operational.
 
 ### 2d. Grace & Rehearsal (embedded in operations)
-- [ ] **[C112 — Fugue Mode]** Build crisis mode (survival-focused, non-essential agents suspended)
-- [ ] **[C113 — Off-Switch Delay]** Build graceful shutdown (60-sec window: final messages, save state, close positions)
-- [ ] **[C114 — Rehearsal Studio]** Build big-action rehearsal (sandbox test, simulated humans, then real)
-- [ ] **[C115 — Whimsy Budget]** Reserve 1-2% of activity budget for non-productive delightful acts (flowers, jokes)
+- [x] **[C112 — Fugue Mode]** Build crisis mode (survival-focused, non-essential agents suspended) — `enterFugue`/`exitFugue` (suspends all except Finance/Sovereign)
+- [x] **[C113 — Off-Switch Delay]** Build graceful shutdown (60-sec window: final messages, save state, close positions) — `initiateOffSwitch`/`tickOffSwitch`/`cancelOffSwitch`
+- [x] **[C114 — Rehearsal Studio]** Build big-action rehearsal (sandbox test, simulated humans, then real) — `planRehearsal` (ToolSynthesizer sandbox + simulated-human) → `approveRehearsal`/`executeRehearsal`/`rejectRehearsal`
+- [x] **[C115 — Whimsy Budget]** Reserve 1-2% of activity budget for non-productive delightful acts (flowers, jokes) — `initWhimsy` (1-2% of activity budget) + `spendWhimsy` (joy-marked, capped)
+- **OUTCOME:** Grace & Rehearsal delivered as `GraceRehearsal` (src/grace/engine.ts). 5 new tests (test/grace.test.ts); full suite 191 passing, coverage 95.78% line / 80.48% branch / 91.09% funcs. Fugue Mode suspends non-essential agents; Off-Switch gives 60s graceful window; Rehearsal Studio runs sandbox+simulated-human before real execution; Whimsy Budget reserves capped delight budget.
 
 ### 2e. 90-Day Operations
 - [ ] Days 1-30: supervised operation (every decision logged, most escalated, human reviews all)

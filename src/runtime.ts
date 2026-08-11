@@ -26,6 +26,7 @@ import { RealityInterface, buildRealityInterface } from './reality/engine.ts';
 import { Sovereign } from './sovereign/engine.ts';
 import { Civilization } from './governance/civilization.ts';
 import { EntityRuntime } from './entity/engine.ts';
+import { GraceRehearsal } from './grace/engine.ts';
 
 /** Adapter seams — every external system (MCP, Temporal, Graphiti, Letta, OpenHands…) plugs in behind these. */
 export interface PlutoAdapters {
@@ -66,6 +67,7 @@ export interface PlutoRuntime {
   sovereign: Sovereign;
   civ: Civilization;
   entity: EntityRuntime;
+  grace: GraceRehearsal;
   tools: ToolDef[];
   adapters: PlutoAdapters;
 }
@@ -105,6 +107,7 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
   const civ = new Civilization(state);
   civ.seedConstitution();
   const entity = new EntityRuntime(state);
+  const grace = new GraceRehearsal(state);
 
   resources.defaults(company.id);
   seedCapabilities(state, company.id);
@@ -112,7 +115,7 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
 
   const runtime: PlutoRuntime = {
     state, company, workforce, governance, resources, verifier, learning, factory,
-    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, messages, synthesizer, canary, immune, forage, reality, sovereign, civ, entity, tools,
+    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, messages, synthesizer, canary, immune, forage, reality, sovereign, civ, entity, grace, tools,
     adapters: {},
   };
 

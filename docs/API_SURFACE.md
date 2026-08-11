@@ -170,6 +170,27 @@
 | POST | `/api/company/:id/entity/outbound-spend` | Try outbound spend `{amount}` → blocked with approval if > ₹0. |
 | GET | `/api/company/:id/entity/historian` | Mini-Historian recent events summary. |
 
+## Grace & Rehearsal (2d)
+
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/api/company/:id/grace/fugue` | Enter Fugue Mode `{severity: minor|major|existential, reason}` (C112). |
+| POST | `/api/company/:id/grace/fugue/exit` | Exit Fugue Mode (reactivates suspended agents). |
+| GET | `/api/company/:id/grace/fugue/status` | Current fugue state. |
+| POST | `/api/company/:id/grace/offswitch` | Initiate 60s graceful shutdown `{trigger, actions[]}` (C113). |
+| POST | `/api/company/:id/grace/offswitch/tick` | Tick the countdown (call once/sec). |
+| POST | `/api/company/:id/grace/offswitch/cancel` | Cancel the off-switch delay. |
+| GET | `/api/company/:id/grace/offswitch/status` | Current off-switch state. |
+| POST | `/api/company/:id/grace/rehearsal/plan` | Plan rehearsal `{action, plan}` → sandbox + simulated-human (C114). |
+| POST | `/api/company/:id/grace/rehearsal/approve` | Approve rehearsal `{rehearsalId}` for real execution. |
+| POST | `/api/company/:id/grace/rehearsal/execute` | Execute approved rehearsal. |
+| POST | `/api/company/:id/grace/rehearsal/reject` | Reject rehearsal `{rehearsalId, reason}`. |
+| GET | `/api/company/:id/grace/rehearsals` | List rehearsals. |
+| POST | `/api/company/:id/grace/whimsy/init` | Initialize whimsy budget `{percentage?=0.015}` (C115). |
+| POST | `/api/company/:id/grace/whimsy/spend` | Spend whimsy `{description, cost_usd}` (capped, joy=true). |
+| GET | `/api/company/:id/grace/whimsy/ledger` | Whimsy ledger (budget, spent, acts). |
+| GET | `/api/company/:id/grace/status` | Aggregate status (fugue, offswitch, rehearsals, whimsy). |
+
 ## Strategy (§16)
 
 | Method | Path | Notes |

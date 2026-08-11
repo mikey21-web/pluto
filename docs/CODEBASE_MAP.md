@@ -125,6 +125,10 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 `EntityRuntime` — the first operating entity (Priya Realty). C96 `formMiniCouncil`/`historianSummary` (mini-Sovereign / mini-Ethics / mini-Historian per company), C100 `anchor`/`verifyAnchors` (sha-256 hash-chain of audit tail into notary records), C18 `persona()` (consistent Priya name/role/personality/scenario), `intakeLead` (rubric on budget/timeline/interest over WhatsApp/Telegram/form channels mapping to Reality providers; `_bookViewing` emits calendar events), `escalationRules` (outbound_spend, high_risk, constitution_conflict, customer_complaint → human + mini-Ethics/court), `spendCaps`/`tryOutboundSpend` (₹500/day LLM, ₹0 outbound without approval via approval gate), `configure` (mission + KPI + daily LLM budget). Exposed as `runtime.entity` + entity API.
 - `formMiniCouncil` `:44` · `anchor` `:70` · `configure` `:103` · `persona` `:124` · `intakeLead` `:143` · `escalationRules` `:186` · `spendCaps` `:193` · `tryOutboundSpend` `:203` · `historianSummary` `:223`
 
+### 2.12k Grace & Rehearsal — `src/grace/engine.ts` (P2, PLAN 2d, C112-C115)
+`GraceRehearsal` — operational resilience + joy. C112 `enterFugue`/`exitFugue` (crisis mode: suspends non-Finance/Sovereign agents, emits event), C113 `initiateOffSwitch`/`tickOffSwitch`/`cancelOffSwitch` (60s graceful shutdown window), C114 `planRehearsal`/`approveRehearsal`/`executeRehearsal`/`rejectRehearsal` (sandbox via ToolSynthesizer + simulated-human → human approval → real exec), C115 `initWhimsy` (1-2% of activity budget) + `spendWhimsy` (capped, joy-marked). Exposed as `runtime.grace` + grace API.
+- `enterFugue` `:52` · `exitFugue` `:79` · `initiateOffSwitch` `:92` · `tickOffSwitch` `:107` · `planRehearsal` `:123` · `approveRehearsal` `:147` · `executeRehearsal` `:155` · `initWhimsy` `:178` · `spendWhimsy` `:193` · `status` `:213`
+
 ### 2.13 Runtime Composition — `src/runtime.ts`
 `createRuntime` wires all subsystems + adapter seams (`PlutoAdapters`) + default bus wiring (task.failed → learning).
 - `createRuntime` `runtime.ts:52` · `formOrganization` `:97` · `PlutoAdapters` `:18` · `meta` `:44`
@@ -142,12 +146,12 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 ### 2.17 Tests — `test/` (25 files, 161 cases)
 `budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, 
 `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`, 
-`bus`, `synthesizer`, `canary`, `immune`, `forage`, `reality`, `sovereign`, `civilization`, `entity`, `phase1_gate`. `helpers.ts` isolates 
+`bus`, `synthesizer`, `canary`, `immune`, `forage`, `reality`, `sovereign`, `civilization`, `entity`, `grace`, `phase1_gate`. `helpers.ts` isolates 
 each runtime on a 
 temp dir. Coverage: 
-95.70% line 
-/ 80.52% branch 
-/ 90.94% funcs.
+95.78% line 
+/ 80.48% branch 
+/ 91.09% funcs.
 
 ---
 
