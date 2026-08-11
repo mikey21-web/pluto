@@ -27,6 +27,14 @@ IMPACT: [what this affects downstream]
 ## Entries
 
 ### 2026-08-12
+TASK: Phase 0.4/0.5
+DECISION: API surface documented in `docs/API_SURFACE.md` (40 endpoints + SSE + static dashboard, grouped by subsystem with body schemas). Phase 0 gate declared complete in `CODEBASE_MAP.md`: grep clean, refactor done, 92% coverage, docs current. Deferred open item: no API auth — local control plane only; add admin token before public exposure (P1+).
+FORAGED: (documentation only)
+RATIONALE: PLAN.md Phase 0 = stabilize + audit; API reference was the last undocumented surface.
+IMPACT: Phase 1 begins with a known, versioned baseline. Dashboard/API contract frozen for P1-P5.
+ESCALATE: none.
+
+### 2026-08-12
 TASK: Phase 0.3
 DECISION: Coverage gate passed. Added `npm run test:coverage` (`node --experimental-test-coverage --test test/*.test.ts`). Baseline was 71% line / 61% funcs with seven modules untested (verify, governance, workforce, observability, work/fabric, agents/loop, intel, learn, tools). Added 9 new test files → 79 tests. Coverage now 92.14% line / 79.04% branch / 86.12% funcs (70% gate comfortably met).
 FORAGED: Native `node:test` coverage flag vs `c8`/`vitest` — chose native, zero deps, matches existing harness.

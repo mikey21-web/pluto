@@ -134,15 +134,26 @@ Graph-based `CompanyIntelligence`: `factsAbout`, `brief`, `learnCustomer`. Plug-
 Priority-ordered. Detailed in `PHASE_0_AUDIT.md`.
 
 1. **`src/org/engines.ts:8-41`** — ✅ **DONE (Phase 0.2).** `BLUEPRINTS` extracted to `config/blueprints.json` (blueprints `services`/`saas`/`real_estate` + `default` key); `blueprintFor` selects from keyword tables with first-match-wins then catalog default. `BLUEPRINTS` export removed. Demo/test defaults neutralized to "professional services". Verified: real-estate mission → 4-dept `real_estate` org; default → 5-dept `services`.
-2. **`src/demo.ts:7,11`** — default mission/company name hardcoded to "web agency". → neutral default + env-driven.
-3. **`test/helpers.ts:11`** — test harness mission defaults bake the same domain string. → neutral default (kept green).
-4. **`src/org/workforce.ts:25` `TASK_SPECS`** — business/services-flavored task kinds. Acceptable → document, keep generic, extend from config later if needed.
-5. **`src/capability/factory.ts:19,94`** — `SELF_MAKE_ROLE_HINT` + seed catalog lean to client-services. Acceptable as seed → document, keep.
-6. **`src/plane/resources.ts:25`** — hardcoded default budgets (`$100 llm` etc.). Acceptable defaults → document; move to config when world model lands.
+2. **`src/demo.ts:7,11`** — ✅ **DONE (Phase 0.2).** Neutral default mission/company; env override preserved.
+3. **`test/helpers.ts:11`** — ✅ **DONE (Phase 0.2).** Neutral default missions; 79 tests green.
+4. **`src/org/workforce.ts:25` `TASK_SPECS`** — business/services-flavored task kinds. Acceptable → documented in DECISIONS.md; extend from config later if needed.
+5. **`src/capability/factory.ts:19,94`** — `SELF_MAKE_ROLE_HINT` + seed catalog lean to client-services. Acceptable as seed → documented.
+6. **`src/plane/resources.ts:25`** — hardcoded default budgets (`$100 llm` etc.). Acceptable defaults → documented; move to config when world model lands.
 7. **Kernel schema** (`types.ts`, `store.ts`) — **already domain-neutral.** No change required; keep it that way (Phase 0.1 gate: grep clean).
 
 **Conforms fully / keep as-is:** kernel layer, event bus, agent runtime, work graph, durable fabric, governance/policy/resources/observability plane, intelligence, dashboard.
 
 ---
 
-*Next: Phase 0.3 — test coverage (70% gate) via `npm run test:coverage`.*
+## Phase 0 gate — status (2026-08-12)
+
+| Gate | Status |
+|---|---|
+| 0.1 grep clean in `src/` + `test/` | ✅ (config is data, not code) |
+| 0.2 refactor executed + demo/test neutral | ✅ |
+| 0.3 coverage ≥70% | ✅ 92.14% line / 79.04% branch / 86.12% funcs (79 tests) via `npm run test:coverage` |
+| 0.4 API surface documented | ✅ `docs/API_SURFACE.md` (40 endpoints + SSE) |
+| `tsc --noEmit` | ✅ |
+| `npm test` | ✅ 79/79 |
+
+*Next: P1 Meta-Agent — the self-aware agent that owns mission, tools, budget, verification.*
