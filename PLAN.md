@@ -444,16 +444,26 @@ Foundation for real decisions. Everything downstream depends on it.
 ### 1b. Message Bus (Month 2-3) [P3 — Agent-to-Agent Messaging]
 Foundation for agent society. Depends on 1a.
 
-- [ ] Define typed message schemas: `request | offer | delegate | dispute | clarify | report | escalate | confess`
-- [ ] Build routing engine (agent addresses, subscriptions)
-- [ ] Build persistent message log (replay for debug)
-- [ ] Build negotiation protocol reference implementation
-- [ ] Build message-driven agent triggering
-- [ ] Build compartmentalization (private channels between specific agents)
-- [ ] Build Confessional channel (private uncertainty flagging, agents can escalate self-doubt)
-- [ ] Test: two agents negotiate a delegation end-to-end
-- [ ] Test: `capability_gap` broadcast triggers meta-agent response
-- [ ] **Milestone:** agents communicate via typed protocols
+- [x] Define typed message schemas: `request | offer | delegate | dispute | clarify | report | escalate | confess`
+  - `CONTRACTS` union in `src/bus/engine.ts`. OUTCOME: 1 test (2026-08-12)
+- [x] Build routing engine (agent addresses, subscriptions)
+  - `MessageBus.subscribe({contract?, channel?})` + `send()` delivers to matching contract/channel subscribers; to_agent/to_department addresses recorded. OUTCOME: 2 tests (2026-08-12)
+- [x] Build persistent message log (replay for debug)
+  - `log(companyId, {contract?, channel?, limit?})` over the durable `messages` table. OUTCOME: covered in several (2026-08-12)
+- [x] Build negotiation protocol reference implementation
+  - `offer` → `acceptOffer`(→ delegate) / `rejectOffer`(report + reason). OUTCOME: 2 tests (2026-08-12)
+- [x] Build message-driven agent triggering
+  - `<msg.contract>` events published; `capability_gap` request handler spawns via meta-agent. OUTCOME: 1 test (2026-08-12)
+- [x] Build compartmentalization (private channels between specific agents)
+  - `channel` field on messages; delivery limited to matching channel subscriptions. OUTCOME: 1 test (2026-08-12)
+- [x] Build Confessional channel (private uncertainty flagging, agents can escalate self-doubt)
+  - `confess()` private self-doubt on `__confessional` channel, `confidential:true`. OUTCOME: 1 test (2026-08-12)
+- [x] Test: two agents negotiate a delegation end-to-end
+  - Sales⇄Delivery offer→accept→delegate. OUTCOME: (2026-08-12)
+- [x] Test: `capability_gap` broadcast triggers meta-agent response
+  - request→spawnForGap→capability registered. OUTCOME: (2026-08-12)
+- [x] **Milestone:** agents communicate via typed protocols
+  - `runtime.messages` (MessageBus) + `/messages`, `/messages/offer`, `/messages/confess` API. OUTCOME: 2026-08-12
 
 ### 1c. Meta Layer (Month 3-5) [P1, P2, P5 — Meta-Agent + Tool Synthesis + Meta-Cognition]
 Foundation for self-extension. Depends on 1a and 1b.

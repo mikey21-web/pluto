@@ -23,6 +23,7 @@ import { MetaAgent } from './meta/engine.ts';
 import { BrainLayer } from './brain/index.ts';
 import { makeDriver } from './agents/llm.ts';
 import { WorldModel } from './world/engine.ts';
+import { MessageBus } from './bus/engine.ts';
 
 const DATA_DIR = process.env.PLUTO_DATA_DIR ?? './data';
 const PORT = Number(process.env.PLUTO_PORT ?? 4000);
@@ -51,6 +52,7 @@ const strategy = new StrategyEngine(state);
 const meta = new MetaAgent(state, { tools });
 const brain = new BrainLayer({ defaultDriver: makeDriver() });
 const world = new WorldModel(state.store);
+const messages = new MessageBus(state, bus);
 
 let lastSeq = 0;
 const sseClients = new Set<import('node:http').ServerResponse>();
@@ -219,17 +221,30 @@ app.post('/api/company/:id/risks', (req, res) => {
   res.json(r);
 });
 
-// ---- messages (§24)
+// ---- messages (§24) + P3 message bus
 app.get('/api/company/:id/messages', (req, res) => {
-  res.json(state.repos.messages(req.params.id, Number(req.query.limit ?? 100)));
+  res.json(messages.log(req.params.id, { contract: req.query.contract as any, limit: Number(req.query.limit ?? 100) }));
 });
 app.post('/api/company/:id/messages', (req, res) => {
-  const m = state.repos.sendMessage({
-    company_id: req.params.id, contract: req.body?.contract ?? 'generic',
+  const m = messages.send({
+    company_id: req.params.id, contract: req.body?.contract ?? 'report',
     from_agent: req.body?.from_agent ?? '', to_agent: req.body?.to_agent ?? null,
     to_department: req.body?.to_department ?? null, payload: req.body?.payload ?? {},
+    channel: req.body?.channel,
   });
   res.json(m);
+});
+app.post('/api/company/:id/messages/offer', (req, res) => {
+  res.json(messages.offer({
+    company_id: req.params.id, from_agent: req.body?.from_agent ?? '', to_agent: req.body?.to_agent ?? '',
+    what: req.body?.what ?? '', for_: req.body?.for ?? '', alternatives: req.body?.alternatives,
+  }));
+});
+app.post('/api/company/:id/messages/confess', (req, res) => {
+  res.json(messages.confess({
+    company_id: req.params.id, from_agent: req.body?.from_agent ?? '',
+    about: req.body?.about ?? '', doubt: req.body?.doubt ?? '', observer: req.body?.observer,
+  }));
 });
 
 // ---- jobs / execution fabric (7.10)

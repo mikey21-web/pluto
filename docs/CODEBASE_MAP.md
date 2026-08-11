@@ -93,6 +93,10 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 `WorldModel`: versioned fact store (`assert` supersedes on entity+attribute, keeps history), query interface (`whatIsTrueAbout`/`current`/`all`), external mirrors with checksum drift detection (`syncMirror`/`markDrift`/`reconcile`), snapshotting (C26) and time-travel (`asOf`). Tables `world_facts`/`world_mirrors` in `store.ts`. Exposed as `runtime.world` + `/world/*` API.
 - `assert` `engine.ts:50` · `whatIsTrueAbout` `:108` · `syncMirror` `:124` · `reconcile` `:168` · `snapshot` `:196` · `asOf` `:212`
 
+### 2.12c Message Bus — `src/bus/engine.ts` (P3, PLAN 1b)
+`MessageBus`: typed agent-to-agent messaging (`CONTRACTS`: request/offer/delegate/dispute/clarify/report/escalate/confess) over the durable `messages` table + EventBus. `subscribe` routing (contract + private channel), `offer`/`acceptOffer`/`rejectOffer` negotiation, `confess` (private self-doubt), `log` replay. `capability_gap` request → meta-agent spawn wiring in runtime. Exposed as `runtime.messages` + `/messages` API.
+- `subscribe` `engine.ts:38` · `send` `:58` · `offer` `:87` · `acceptOffer` `:96` · `confess` `:116` · `log` `:130`
+
 ### 2.13 Runtime Composition — `src/runtime.ts`
 `createRuntime` wires all subsystems + adapter seams (`PlutoAdapters`) + default bus wiring (task.failed → learning).
 - `createRuntime` `runtime.ts:52` · `formOrganization` `:97` · `PlutoAdapters` `:18` · `meta` `:44`
@@ -107,8 +111,8 @@ LLM substrate every agent call funnels through. `router.ts` `ModelRouter` (C92 c
 ### 2.15 Dashboard — `apps/dashboard/src/main.ts`
 945-line SPA (Command Center). Renders company switcher, KPIs, org graph (SVG), objectives, approvals, and a 17-view panel (`renderView` main.ts:205; nav :754). `dist/app.js` is prebuilt via esbuild.
 
-### 2.16 Tests — `test/` (18 files, 108 cases)
-`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`. `helpers.ts` isolates each runtime on a temp dir. Coverage: 93.58% line / 80.02% branch / 88.45% funcs.
+### 2.16 Tests — `test/` (19 files, 116 cases)
+`budget`, `capability`, `driver`, `isolation`, `policy`, `strategy`, `workgraph`, `verify`, `governance`, `workforce`, `observability`, `fabric`, `loop`, `intel`, `learn`, `tools`, `meta`, `brain`, `world`, `bus`. `helpers.ts` isolates each runtime on a temp dir. Coverage: 94.27% line / 80.39% branch / 89.51% funcs.
 
 ---
 

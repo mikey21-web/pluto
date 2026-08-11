@@ -17,6 +17,7 @@ import { MetaAgent } from './meta/engine.ts';
 import { BrainLayer } from './brain/index.ts';
 import { makeDriver } from './agents/llm.ts';
 import { WorldModel } from './world/engine.ts';
+import { MessageBus } from './bus/engine.ts';
 
 /** Adapter seams — every external system (MCP, Temporal, Graphiti, Letta, OpenHands…) plugs in behind these. */
 export interface PlutoAdapters {
@@ -48,6 +49,7 @@ export interface PlutoRuntime {
   meta: MetaAgent;
   brain: BrainLayer;
   world: WorldModel;
+  messages: MessageBus;
   tools: ToolDef[];
   adapters: PlutoAdapters;
 }
@@ -67,6 +69,7 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
   const bus = new EventBus(state);
   const brain = new BrainLayer({ defaultDriver: makeDriver() });
   const world = new WorldModel(state.store);
+  const messages = new MessageBus(state, bus);
   const workforce = new Workforce(state, tools, brain);
   const workGraph = new WorkGraphEngine(state);
   const fabric = new ExecutionFabric(state);
@@ -80,7 +83,7 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
 
   const runtime: PlutoRuntime = {
     state, company, workforce, governance, resources, verifier, learning, factory,
-    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, tools,
+    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, messages, tools,
     adapters: {},
   };
 
@@ -91,6 +94,17 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
       if (t) learning.observeTaskOutcome(t, false);
     }
   });
+
+  // P3 wiring: `capability_gap` message broadcast triggers the meta-agent to spawn a capability
+  messages.subscribe({ contract: 'request', handler: async (m) => {
+    const row = m as unknown as { from_agent: string; payload: Record<string, unknown> };
+    if (typeof (row.payload as any)?.kind === 'string' && String((row.payload as any).kind) === 'capability_gap') {
+      const gap: string = String((row.payload as any).capability ?? '');
+      if (gap) {
+        try { await meta.spawnForGap(m.company_id, gap, 'capability_gap broadcast'); } catch { /* spawn failures are non-fatal to the bus */ }
+      }
+    }
+  }});
 
   state.companyEvent(company, 'company.created', { mission });
   return runtime;
