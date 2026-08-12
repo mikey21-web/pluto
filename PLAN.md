@@ -631,11 +631,12 @@ Real commercial channels for the civilization.
 - [ ] Entity #4-N as opportunities emerge
 
 ### 3b. Cross-Company Mechanisms
-- [ ] **[C8 — Reputation as capital]** Build reputation ledger (asset, tradable, transferable between companies)
-- [ ] **[C2 — Genetic inheritance]** Build gene mechanism (successful agent DNA seeds new companies)
-- [ ] **[C78 — Descendants]** Build lineage declaration (new companies as descendants of successful old ones, inheriting name/mission/resources)
-- [ ] **[C9 — Internal agent economy]** Build cognits (internal currency for inter-agent transactions)
-- [ ] Cross-company message bus (companies negotiate with each other)
+- [x] **[C8 — Reputation as capital]** Build reputation ledger (asset, tradable, transferable between companies) — `recordReputation`/`reputationBalance`/`transferReputation` (5 kinds: trust/competence/reliability/ethics/innovation, 10% decay on transfer)
+- [x] **[C2 — Genetic inheritance]** Build gene mechanism (successful agent DNA seeds new companies) — `extractGene`/`genePool`/`applyGene` with mutation rate
+- [x] **[C78 — Descendants]** Build lineage declaration (new companies as descendants of successful old ones, inheriting name/mission/resources) — `declareDescendant`/`descendantsOf`
+- [x] **[C9 — Internal agent economy]** Build cognits (internal currency for inter-agent transactions) — `cognitAccount`/`cognitBalance`/`transferCognits` (1000 initial, transfer between companies)
+- [x] Cross-company message bus (companies negotiate with each other) — `sendMessage` (typed contracts: request/offer/negotiate/accept/reject/dispute)
+- **OUTCOME (3b):** Cross-company mechanisms delivered as `CrossCompany` (src/crosscompany/engine.ts). 4 tests (descendant, cognits, message, status); full suite 216 passing, coverage 94.97% line / 80.98% branch / 89.79% funcs. Reputation ledger with 5 kinds + decay, genetic inheritance with mutation, descendant lineage with resource allocation, cognit currency with 1000 initial balance, typed cross-company message bus.
 
 ### 3c. Company Lifecycle
 - [ ] **[C1 — Evolutionary death]** Build kill contracts (unprofitable → self-terminate, capital returns)

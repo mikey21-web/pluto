@@ -28,6 +28,7 @@ import { Civilization } from './governance/civilization.ts';
 import { EntityRuntime } from './entity/engine.ts';
 import { EcommerceRuntime } from './entity/ecommerce.ts';
 import { ContentRuntime } from './entity/content.ts';
+import { CrossCompany } from './crosscompany/engine.ts';
 import { GraceRehearsal } from './grace/engine.ts';
 import { OpsRuntime } from './ops/engine.ts';
 
@@ -74,6 +75,7 @@ export interface PlutoRuntime {
   ops: OpsRuntime;
   ecommerce: EcommerceRuntime;
   content: ContentRuntime;
+  cross: CrossCompany;
   tools: ToolDef[];
   adapters: PlutoAdapters;
 }
@@ -117,6 +119,7 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
   const ops = new OpsRuntime(state);
   const ecommerce = new EcommerceRuntime(state);
   const content = new ContentRuntime(state);
+  const cross = new CrossCompany(state);
 
   resources.defaults(company.id);
   seedCapabilities(state, company.id);
@@ -124,7 +127,7 @@ export function createRuntime(dataDir: string, name: string, mission: string, to
 
   const runtime: PlutoRuntime = {
     state, company, workforce, governance, resources, verifier, learning, factory,
-    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, messages, synthesizer, canary, immune, forage, reality, sovereign, civ, entity, grace, ops, ecommerce, content, tools,
+    org, strategy, bus, workGraph, fabric, capabilities, intel, policies, meta, brain, world, messages, synthesizer, canary, immune, forage, reality, sovereign, civ, entity, grace, ops, ecommerce, content, cross, tools,
     adapters: {},
   };
 
