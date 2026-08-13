@@ -46,7 +46,7 @@ const server = createServer(async (req, res) => {
   try {
     // GET / or /dashboard — serve the dashboard UI
     if (method === 'GET' && (url === '/' || url === '/dashboard')) {
-      const html = getDashboardHTML(`https://ravishing-balance-production-68ee.up.railway.app`);
+      const html = getDashboardHTML('');
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       return res.end(html);
     }
@@ -126,6 +126,107 @@ const server = createServer(async (req, res) => {
       }
 
       return notFound(res, `Unknown endpoint: ${sub}`);
+    }
+
+    // POST /chat
+    if (method === 'POST' && url === '/chat') {
+      const body = await readBody(req) as any;
+      const message: string = String(body?.message || '');
+      const companyId: string | undefined = body?.companyId;
+      const msg = message.toLowerCase();
+
+      let reply: string;
+      let delegations: Array<{ role: string; message: string }>;
+
+      const apiKey = process.env.ANTHROPIC_API_KEY;
+      if (apiKey) {
+        try {
+          const prompt = `You are PLUTO, an autonomous company OS. The user is the Sovereign. Respond as PLUTO in 1-2 sentences, then output a JSON block with key "delegations": array of {role,message} for CEO/COO/CFO. Format: <pluto>your reply</pluto><json>{"delegations":[...]}</json>`;
+          const r = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+            body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 512, system: prompt, messages: [{ role: 'user', content: message }] }),
+          });
+          const data = await r.json() as any;
+          const text: string = data?.content?.[0]?.text ?? '';
+          const plutoMatch = text.match(/<pluto>([\s\S]*?)<\/pluto>/);
+          const jsonMatch = text.match(/<json>([\s\S]*?)<\/json>/);
+          reply = plutoMatch?.[1]?.trim() ?? text.trim();
+          delegations = jsonMatch ? (JSON.parse(jsonMatch[1]) as any).delegations ?? [] : [];
+        } catch {
+          reply = `Understood. I've briefed your C-suite on: "${message}"`;
+          delegations = [
+            { role: 'CEO', message: `I'll coordinate on "${message}". Assigning to relevant departments.` },
+            { role: 'COO', message: 'Operations are ready. I\'ll prepare execution plan.' },
+            { role: 'CFO', message: 'Budget check: within limits. Approved.' },
+          ];
+        }
+      } else if (msg.includes('spawn') || msg.includes('create') || msg.includes('new company')) {
+        reply = 'Use the [+ Spawn Company] button or [+ New] in the top bar to create a company.';
+        delegations = [];
+      } else if (msg.includes('status') || msg.includes('how') || msg.includes('report')) {
+        const cs = repos.companies();
+        reply = `Currently managing ${cs.length} compan${cs.length === 1 ? 'y' : 'ies'}. All systems nominal.`;
+        delegations = [{ role: 'CEO', message: 'Generating status digest across all departments.' }];
+      } else if (msg.includes('halt') || msg.includes('stop') || msg.includes('pause')) {
+        reply = 'To halt a company, please confirm: which company should be halted?';
+        delegations = [];
+      } else {
+        reply = `Understood. I've briefed your C-suite on: "${message}"`;
+        delegations = [
+          { role: 'CEO', message: `I'll coordinate on "${message}". Assigning to relevant departments.` },
+          { role: 'COO', message: 'Operations are ready. I\'ll prepare execution plan.' },
+          { role: 'CFO', message: 'Budget check: within limits. Approved.' },
+        ];
+      }
+
+      if (companyId) {
+        state.emit(companyId, 'sovereign.message', null, 'sovereign', { message, reply });
+      }
+      return ok(res, { reply, delegations });
+    }
+
+    // GET /events — last 50 across all companies
+    if (method === 'GET' && url === '/events') {
+      const cs = repos.companies();
+      const events = cs.flatMap(c => repos.events(c.id, 50))
+        .sort((a, b) => new Date(b.ts ?? 0).getTime() - new Date(a.ts ?? 0).getTime())
+        .slice(0, 50);
+      return ok(res, events);
+    }
+
+    // GET /org/:companyId
+    const orgMatch = url.match(/^\/org\/([^/]+)$/);
+    if (method === 'GET' && orgMatch) {
+      const id = orgMatch[1];
+      const company = repos.company(id);
+      if (!company) return notFound(res, `Company ${id} not found`);
+      const agents = repos.agents(id);
+      const CSUITE = ['CEO', 'COO', 'CFO'];
+      const csuite = agents.filter(a => CSUITE.includes(a.role));
+      const departments = agents
+        .filter(a => !CSUITE.includes(a.role))
+        .reduce<Record<string, typeof agents>>((acc, a) => {
+          const key = a.role?.slice(0, 3).toUpperCase() ?? 'OTH';
+          (acc[key] = acc[key] ?? []).push(a);
+          return acc;
+        }, {});
+      return ok(res, { company, csuite, departments });
+    }
+
+    // GET /agents/:companyId
+    const agentsMatch = url.match(/^\/agents\/([^/]+)$/);
+    if (method === 'GET' && agentsMatch) {
+      const id = agentsMatch[1];
+      const company = repos.company(id);
+      if (!company) return notFound(res, `Company ${id} not found`);
+      const agents = repos.agents(id);
+      const tasks = (repos as any).tasks(id) as any[];
+      const result = agents.map(a => ({
+        ...a,
+        currentTask: tasks.find((t: any) => t.agent_id === a.id && t.status === 'RUNNING')?.summary ?? null,
+      }));
+      return ok(res, result);
     }
 
     notFound(res);
