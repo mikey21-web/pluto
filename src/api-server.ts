@@ -8,9 +8,7 @@ import { CompanyIntelligence } from './intel/engine.ts';
 import { ResourceEngine } from './plane/resources.ts';
 import { PolicyEngine } from './plane/policy.ts';
 
-// Windows URL path fix: /C:/... → C:/...
-const _dir = new URL('.', import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1');
-const dashboardDir = join(_dir, '..', 'apps', 'dashboard');
+const dashboardDir = join(process.cwd(), 'apps', 'dashboard');
 
 const dataDir = process.env.DATA_DIR ?? './data';
 const port = Number(process.env.PORT ?? 3000);
