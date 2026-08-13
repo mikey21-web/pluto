@@ -1,9 +1,16 @@
 import { createServer, IncomingMessage, ServerResponse } from 'node:http';
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { PlutoState } from './kernel/state.ts';
 import { describeOrg } from './plane/governance.ts';
 import { Sovereign } from './sovereign/engine.ts';
-import { getDashboardHTML } from './dashboard/html.ts';
+import { CompanyIntelligence } from './intel/engine.ts';
+import { ResourceEngine } from './plane/resources.ts';
+import { PolicyEngine } from './plane/policy.ts';
+
+// Windows URL path fix: /C:/... → C:/...
+const _dir = new URL('.', import.meta.url).pathname.replace(/^\/([A-Z]:)/, '$1');
+const dashboardDir = join(_dir, '..', 'apps', 'dashboard');
 
 const dataDir = process.env.DATA_DIR ?? './data';
 const port = Number(process.env.PORT ?? 3000);
@@ -44,11 +51,198 @@ const server = createServer(async (req, res) => {
   const method = req.method ?? 'GET';
 
   try {
-    // GET / or /dashboard — serve the dashboard UI
+    // GET / — serve the dashboard SPA
     if (method === 'GET' && (url === '/' || url === '/dashboard')) {
-      const html = getDashboardHTML('');
+      const html = readFileSync(join(dashboardDir, 'index.html'), 'utf8');
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       return res.end(html);
+    }
+
+    // GET /dist/app.js — serve built dashboard JS
+    if (method === 'GET' && url === '/dist/app.js') {
+      const js = readFileSync(join(dashboardDir, 'dist', 'app.js'));
+      res.writeHead(200, { 'Content-Type': 'application/javascript' });
+      return res.end(js);
+    }
+
+    // GET /api/companies
+    if (method === 'GET' && url === '/api/companies') {
+      const companies = repos.companies();
+      return ok(res, companies.map(c => {
+        const agents = repos.agents(c.id);
+        const departments = repos.departments(c.id);
+        const tasks = repos.tasks(c.id);
+        const approvals = repos.approvals(c.id, 'pending');
+        const capabilities = repos.capabilities(c.id);
+        const projects = repos.projects(c.id);
+        const strategies = repos.strategies(c.id);
+        return {
+          id: c.id, name: c.name, mission: c.mission, health: c.health,
+          agents: agents.length, departments: departments.length,
+          tasks_total: tasks.filter(t => t.status === 'SUCCEEDED').length,
+          tasks_failed: tasks.filter(t => t.status === 'FAILED').length,
+          spend: repos.budgets(c.id).reduce((a, b) => a + b.used_usd, 0),
+          approvals_pending: approvals.length,
+          capabilities: capabilities.length, projects: projects.length, strategies: strategies.length,
+        };
+      }));
+    }
+
+    // POST /api/companies
+    if (method === 'POST' && url === '/api/companies') {
+      const body = await readBody(req) as any;
+      if (!body?.name || !body?.mission) return badRequest(res, 'name and mission required');
+      const sovereign = new Sovereign(state);
+      const company = sovereign.spawnCompany({ name: body.name, mission: body.mission });
+      return created(res, company);
+    }
+
+    // GET /api/company/:id/snapshot
+    const snapshotMatch = url.match(/^\/api\/company\/([^/]+)\/snapshot$/);
+    if (method === 'GET' && snapshotMatch) {
+      const id = snapshotMatch[1];
+      const company = repos.company(id);
+      if (!company) return notFound(res, `Company ${id} not found`);
+      const agents = repos.agents(id);
+      const departments = repos.departments(id);
+      const tasks = repos.tasks(id);
+      const approvals = repos.approvals(id, 'pending');
+      const capabilities = repos.capabilities(id);
+      const projects = repos.projects(id);
+      const strategies = repos.strategies(id);
+      const budgets = new ResourceEngine(state).ledger(id);
+      const intel = new CompanyIntelligence(state).brief(id);
+      const snap = {
+        company: {
+          id: company.id, name: company.name, mission: company.mission, health: company.health,
+          agents: agents.length, departments: departments.length,
+          tasks_total: tasks.filter(t => t.status === 'SUCCEEDED').length,
+          tasks_failed: tasks.filter(t => t.status === 'FAILED').length,
+          spend: budgets.reduce((a, b) => a + b.used_usd, 0),
+          approvals_pending: approvals.length,
+          capabilities: capabilities.length, projects: projects.length, strategies: strategies.length,
+        },
+        org_summary: `${company.name} — ${departments.length} depts, ${agents.length} agents`,
+        graph: { nodes: repos.graphNodesFor(id), edges: repos.graphEdgesFor(id) },
+        departments, agents, objectives: repos.objectives(id), projects, tasks,
+        events: repos.events(id, 100), approvals, decisions: repos.decisions(id, 50),
+        budgets, memory: repos.memory(id, undefined, 20), learning: repos.lessons(id),
+        traces: repos.traces(id, 50), capabilities, policies: repos.policies(id),
+        risks: repos.risks(id), experiments: repos.experiments(id), strategies,
+        messages: repos.messages(id, 50), jobs: repos.jobs(id), artifacts: repos.artifacts(id),
+        intelligence: intel,
+      };
+      return ok(res, snap);
+    }
+
+    // POST /api/approvals/:id/decide
+    const decideMatch = url.match(/^\/api\/approvals\/([^/]+)\/decide$/);
+    if (method === 'POST' && decideMatch) {
+      const body = await readBody(req) as any;
+      const result = repos.decideApproval(decideMatch[1], body?.decision, body?.by ?? 'founder');
+      if (!result) return notFound(res, 'approval not found');
+      return ok(res, result);
+    }
+
+    // GET /api/events/stream — SSE
+    if (method === 'GET' && url === '/api/events/stream') {
+      res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
+      const interval = setInterval(() => {
+        try { res.write('data: ping\n\n'); } catch { clearInterval(interval); }
+      }, 5000);
+      req.on('close', () => clearInterval(interval));
+      return;
+    }
+
+    // Company-scoped /api/company/:id/* routes
+    const apiCompanyMatch = url.match(/^\/api\/company\/([^/]+)(\/.*)?$/);
+    if (apiCompanyMatch) {
+      const id = apiCompanyMatch[1];
+      const sub = apiCompanyMatch[2] ?? '';
+      const company = repos.company(id);
+      if (!company) return notFound(res, `Company ${id} not found`);
+
+      // POST /api/company/:id/tasks
+      if (method === 'POST' && sub === '/tasks') {
+        const body = await readBody(req) as any;
+        if (!body?.summary) return badRequest(res, 'summary required');
+        const policyEngine = new PolicyEngine(state);
+        const agentId: string | null = body.agent_id ?? null;
+        const agent = agentId ? repos.agent(agentId) : null;
+        const verdict = policyEngine.evaluate(id, agent?.role ?? '*', body.kind ?? 'task');
+        if (verdict.effect === 'deny') {
+          return ok(res, { status: 'blocked', policy: verdict, task_id: null });
+        }
+        const task = repos.createTask({ company_id: id, summary: body.summary, kind: body.kind, agent_id: agentId, objective_id: body.objective_id ?? null });
+        state.emit(id, 'task.created', task.id, 'task', { summary: body.summary });
+        return created(res, { task_id: task.id, status: task.status, policy: verdict });
+      }
+
+      // POST /api/company/:id/strategies
+      if (method === 'POST' && sub === '/strategies') {
+        const body = await readBody(req) as any;
+        if (!body?.name) return badRequest(res, 'name required');
+        const strat = repos.createStrategy({ company_id: id, name: body.name, kind: body.kind ?? 'experiment', options: body.options ?? [] });
+        // pick highest expected*confidence/cost option
+        const best = strat.options.reduce<any>((b, o) => {
+          const score = (o.expected ?? 0) * (o.confidence ?? 0.5) / Math.max(o.cost_usd ?? 1, 1);
+          return !b || score > b.score ? { ...o, score } : b;
+        }, null);
+        if (best) repos.chooseStrategy(strat.id, best.id ?? best.name);
+        return created(res, { ...strat, chosen: best?.id ?? best?.name ?? null });
+      }
+
+      // POST /api/company/:id/experiments
+      if (method === 'POST' && sub === '/experiments') {
+        const body = await readBody(req) as any;
+        if (!body?.hypothesis) return badRequest(res, 'hypothesis required');
+        const exp = repos.createExperiment({ company_id: id, hypothesis: body.hypothesis, variant: body.variant ?? 'control', metric: body.metric ?? 'conversion', baseline: body.baseline ?? null });
+        exp.status = 'running'; exp.started_at = new Date().toISOString();
+        repos.saveExperiment(exp);
+        return created(res, exp);
+      }
+
+      // POST /api/company/:id/experiments/:eid/conclude
+      const concludeMatch = sub.match(/^\/experiments\/([^/]+)\/conclude$/);
+      if (method === 'POST' && concludeMatch) {
+        const body = await readBody(req) as any;
+        const exps = repos.experiments(id);
+        const exp = exps.find(e => e.id === concludeMatch[1]);
+        if (!exp) return notFound(res, 'experiment not found');
+        exp.current = body?.observed ?? null;
+        exp.status = exp.current !== null && exp.baseline !== null && exp.current > exp.baseline ? 'won' : 'lost';
+        repos.saveExperiment(exp);
+        return ok(res, exp);
+      }
+
+      // POST /api/company/:id/capabilities/acquire
+      if (method === 'POST' && sub === '/capabilities/acquire') {
+        const body = await readBody(req) as any;
+        if (!body?.name) return badRequest(res, 'name required');
+        const ceiling = body.cost_ceiling_usd ?? 10;
+        const urgency = body.urgency ?? 0.5;
+        // simple heuristic: buy if cheap, create if urgency high, defer otherwise
+        let decision: string, provider = '', agentRole = '', est_cost_usd = 0, reason = '';
+        if (ceiling >= 5) {
+          decision = 'buy'; provider = 'external'; est_cost_usd = ceiling * 0.8;
+          const cap = repos.registerCapability({ company_id: id, name: body.name, kind: 'external', provider: 'external', description: body.description ?? '', cost_per_call: est_cost_usd / 100 });
+          state.emit(id, 'capability.acquired', cap.id, 'capability', { name: body.name, decision });
+        } else if (urgency > 0.7) {
+          decision = 'create'; agentRole = `${body.name.toLowerCase().replace(/\s+/g, '_')}_specialist`;
+        } else {
+          decision = 'defer'; reason = 'cost ceiling too low and urgency not sufficient';
+        }
+        return ok(res, { decision: { decision, provider, agentRole, est_cost_usd, reason } });
+      }
+
+      // POST /api/company/:id/policies/check
+      if (method === 'POST' && sub === '/policies/check') {
+        const body = await readBody(req) as any;
+        const verdict = new PolicyEngine(state).evaluate(id, body?.role ?? '*', body?.action ?? '*');
+        return ok(res, { effect: verdict.effect, note: verdict.note ?? null, policy: verdict.policy });
+      }
+
+      return notFound(res, `Unknown /api/company endpoint: ${sub}`);
     }
 
     // GET /health
