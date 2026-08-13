@@ -330,27 +330,45 @@ const server = createServer(async (req, res) => {
       let reply: string;
       let delegations: Array<{ role: string; message: string }>;
 
-      const apiKey = process.env.ANTHROPIC_API_KEY;
-      if (apiKey) {
+      const groqKey = process.env.GROQ_API_KEY;
+      const anthropicKey = process.env.ANTHROPIC_API_KEY;
+      const llmKey = groqKey || anthropicKey;
+
+      if (llmKey) {
         try {
-          const prompt = `You are PLUTO, an autonomous company OS. The user is the Sovereign. Respond as PLUTO in 1-2 sentences, then output a JSON block with key "delegations": array of {role,message} for CEO/COO/CFO. Format: <pluto>your reply</pluto><json>{"delegations":[...]}</json>`;
-          const r = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-            body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 512, system: prompt, messages: [{ role: 'user', content: message }] }),
-          });
-          const data = await r.json() as any;
-          const text: string = data?.content?.[0]?.text ?? '';
+          const isGroq = !!groqKey;
+          const systemPrompt = `You are PLUTO, an autonomous company OS. The user is the Sovereign. Respond as PLUTO in 1-2 sentences, then output a JSON block with key "delegations": array of {role,message} for CEO/COO/CFO. Format: <pluto>your reply</pluto><json>{"delegations":[...]}</json>`;
+
+          let text = '';
+          if (isGroq) {
+            const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${llmKey}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ model: 'llama-3.3-70b-versatile', max_tokens: 512, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: message }] }),
+            });
+            const data = await r.json() as any;
+            text = data?.choices?.[0]?.message?.content ?? '';
+          } else {
+            const r = await fetch('https://api.anthropic.com/v1/messages', {
+              method: 'POST',
+              headers: { 'x-api-key': llmKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+              body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 512, system: systemPrompt, messages: [{ role: 'user', content: message }] }),
+            });
+            const data = await r.json() as any;
+            text = data?.content?.[0]?.text ?? '';
+          }
+
           const plutoMatch = text.match(/<pluto>([\s\S]*?)<\/pluto>/);
           const jsonMatch = text.match(/<json>([\s\S]*?)<\/json>/);
           reply = plutoMatch?.[1]?.trim() ?? text.trim();
-          delegations = jsonMatch ? (JSON.parse(jsonMatch[1]) as any).delegations ?? [] : [];
+          try { delegations = jsonMatch ? (JSON.parse(jsonMatch[1]) as any).delegations ?? [] : []; }
+          catch { delegations = []; }
         } catch {
           reply = `Understood. I've briefed your C-suite on: "${message}"`;
           delegations = [
             { role: 'CEO', message: `I'll coordinate on "${message}". Assigning to relevant departments.` },
-            { role: 'COO', message: 'Operations are ready. I\'ll prepare execution plan.' },
-            { role: 'CFO', message: 'Budget check: within limits. Approved.' },
+            { role: 'COO', message: `Operations are ready. Preparing execution plan.` },
+            { role: 'CFO', message: `Budget check: within limits. Approved.` },
           ];
         }
       } else if (msg.includes('spawn') || msg.includes('create') || msg.includes('new company')) {
