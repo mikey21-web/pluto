@@ -1,5 +1,5 @@
 import { PlutoState } from '../kernel/state.ts';
-import { newId } from '../kernel/types.ts';
+import { newId, now } from '../kernel/types.ts';
 import type { Company } from '../kernel/types.ts';
 import { OrgEngine } from '../org/engines.ts';
 import { Governance } from '../plane/governance.ts';
@@ -7,6 +7,17 @@ import { ResourceEngine } from '../plane/resources.ts';
 import { PolicyEngine } from '../plane/policy.ts';
 
 export type KillScope = 'company' | 'global';
+
+export interface SubCivDelegation {
+  id: string;
+  parent_civ_id: string;
+  sub_company_id: string;
+  sub_name: string;
+  delegated_by: string;
+  authority_granted: string[];
+  status: 'active' | 'revoked';
+  delegated_at: string;
+}
 export type ApprovalTier = 'auto' | 'gated' | 'human-only';
 export type RollbackStatus = 'pending' | 'applied' | 'failed';
 
@@ -222,6 +233,34 @@ export class Sovereign {
 
   owners(companyId: string): OwnerRecord[] {
     return this.state.repos.owners(companyId);
+  }
+
+  // ---- C866 Sovereign delegation: spin off subsidiary civilizations ----------
+
+  /** Declare a subsidiary civilization under this sovereign. The sub-civ gets its own company in this runtime. */
+  delegateSovereign(parentCivId: string, subName: string, subMission: string, delegatedBy: string): { company: Company; delegation: SubCivDelegation } {
+    const company = this.spawnCompany({ name: subName, mission: subMission });
+    const delegation: SubCivDelegation = {
+      id: newId('deleg'),
+      parent_civ_id: parentCivId,
+      sub_company_id: company.id,
+      sub_name: subName,
+      delegated_by: delegatedBy,
+      authority_granted: ['operate', 'hire', 'spend'],
+      status: 'active',
+      delegated_at: now(),
+    };
+    this.state.remember('__global__', JSON.stringify(delegation), {
+      type: 'strategic', source: 'sovereign.delegation',
+      tags: ['delegation', delegation.id, parentCivId, company.id, 'active'],
+    });
+    return { company, delegation };
+  }
+
+  delegations(parentCivId: string): SubCivDelegation[] {
+    return this.state.repos.memory('__global__', 'strategic', 100)
+      .filter(r => r.source === 'sovereign.delegation' && (r.tags as string[])[2] === parentCivId)
+      .map(r => JSON.parse(r.content) as SubCivDelegation);
   }
 
   private logKill(c: { company_id: string; scope: KillScope; action: string; reason: string; by: string }): void {

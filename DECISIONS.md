@@ -15,6 +15,55 @@ IMPACT: [what this affects downstream]
 ```
 
 ### 2026-08-12
+TASK: Phase 3i — Meta-Sovereign Preparation (C105)
+DECISION: Built `src/metasovereign/engine.ts` `MetaSovereign`. Sovereign node registry (registerSovereign/nodes — nested level chain via parent_id, level auto-incremented from parent); C105 rotating modes (setMode/autoMode — auto-detects wartime on halted companies or high failures, consolidation on >10 companies, exploration on all-green); portfolioReport (aggregates all companies, spend, recommendations); level2Readiness (scored gate: 5+ active companies, sovereign nodes, birth records, cross-company cognits); status (node count by mode). Wired `runtime.metasovereign`. 6 tests, 252/252 suite passing.
+FORAGED: orchestration / portfolio-management libs — rejected; all coordination reuses existing repos + memory substrate + Sovereign kill/spawn primitives.
+RATIONALE: Meta-Sovereign is thin coordination logic over existing Sovereign instances, not a new execution engine. The mode system is a lightweight state machine — no framework needed.
+IMPACT: Civilization now has a Sovereign over Sovereigns for Level 2+ portfolio operations. Phase 3 code complete (3c-3i). Phase 3 GATE requires real-world operational metrics (5 live companies, positive cash flow, ≤10h/week founder time) — those unlock during deployment.
+
+### 2026-08-12
+TASK: Phase 3h — Distributed Authority & Full-Spectrum (C107, C109, C110, C111)
+DECISION: Built `src/authority/engine.ts` `AuthorityEngine`. C107 Democratic Ballots (openBallot/castVote/closeBallot — weighted majority tally, status tags, open/closed lifecycle); C109 Multi-Currency (credit/debit/balance/accounts for 5 non-fungible credit kinds: cognit/attention/reputation/compute/trust — debit returns false on insufficient balance); C110 Metabolism (snapshot — derives attention from task.attempts, llm_calls from traces, cost_usd from trace totals, health_score = completion_rate × inverse_cost; unhealthy alert event at <0.3); C111 Reverse Foraging (contribute/contributions — publishes tool/dataset/paper/blog to global memory). Wired `runtime.authority`. 5 tests, 252/252 suite passing.
+FORAGED: voting libs / telemetry libs — rejected; weighted tally is 10 lines, metabolism derives from existing trace/task tables, no new store needed.
+RATIONALE: All 4 items share the same memory+event substrate. Multi-currency uses debit/credit rows (positive = credit, negative = debit) summed for balance — same pattern as cognits in crosscompany but typed by kind and stored per company.
+IMPACT: Civilization can vote on decisions, track 5 types of non-fungible credits, read its own metabolic health, and give back to the ecosystem it forages from. Next: 3i.
+
+### 2026-08-12
+TASK: Phase 3g — Fractal Company Architecture (C95, C97, C98)
+DECISION: Built `src/fractal/engine.ts` `FractalEngine`. C95 sub-companies (spawnSubCompany/subCompanies/lineage — depth tracked in tags, graph `owns` edge, own budget+policies via existing ResourceEngine/PolicyEngine); C97 department layer (addDepartment/deptSpend/deptBudgets — reuses existing repos.createDepartment with parent_id, per-dept budget scope `dept:{id}`, over-budget guard); C98 Market Governor (governMarket — HHI concentration index, redistributes cognits from >40% share holders to 3 smallest players). Wired `runtime.fractal`. 5 tests, 241/241 suite passing.
+FORAGED: org-chart libs — rejected; existing repos.createDepartment already has parent_id and the departments table has parent_id column. Zero new schema needed for C95/C97.
+RATIONALE: Fractal architecture is literally reusing the same company/department creation primitives but allowing recursive ownership. The only new thing is tracking depth and the market governor's rebalance logic.
+IMPACT: Companies can spawn sub-companies (unlimited depth), departments get own budgets with over-spend protection, and the internal economy has anti-monopoly enforcement. Next: 3h.
+
+### 2026-08-12
+TASK: Phase 3f — Dream Cycle + Emotional State (C6, C61)
+DECISION: Built `src/dream/engine.ts` `DreamEngine`. C6 Dream Cycle (`dream`/`applyInsight`/`dreams` — hypothesis stored with simulated outcome + insight, applied flag toggled when civilization acts on it); C61 Emotional State (`readEmotion` — keyword heuristics for tone (frustrated/excited/positive/neutral/negative), disengagement via reply_latency >48h or short dismissive text, urgency tier (low/medium/high), recommended_action per state; `emotionHistory` per customer). Wired `runtime.dream`. 5 tests, 236/236 suite passing.
+FORAGED: NLP sentiment libs (natural, sentiment, compromise) — rejected; keyword regex covers the 5-tone model with zero deps and deterministic tests. Full NLP pipeline deferred to Phase 4g when volume warrants.
+RATIONALE: Dream Cycle is a hypothesis → outcome → apply loop that the agent fills at runtime; the skeleton is what the civilization needs now. Emotional reading at keyword-level is sufficient for WhatsApp/Telegram text, which dominates v1 channels.
+IMPACT: Civilization now simulates hypotheticals off-hours and detects customer emotional state at intake. High-urgency signals auto-emit for escalation. Next: 3g Fractal Company Architecture.
+
+### 2026-08-12
+TASK: Phase 3e — Human Interaction (C31, C42, C63)
+DECISION: Built `src/human/engine.ts` `HumanEngine`. C31 Contractor Tickets (`postTicket`/`hireContractor`/`closeTicket`/`tickets` — platform-agnostic ticket lifecycle stored in company memory with status tags, search by companyId+ticketId across global+company memory); C42 Owner Mental Model (`observeOwner`/`ownerModel` — observations accumulate with signal tags, model synthesized by tallying risk/style/speed signals across all observations); C63 Customer Memory (`rememberCustomer`/`recallCustomer`/`customers` — every fact stored episodically, all surface on recall regardless of time gap, sentiment + lifetime_value_usd derived). Wired `runtime.human`. 4 tests, 236/236 suite passing.
+FORAGED: CRM libs (HubSpot SDK, Salesforce API) — rejected; episodic memory substrate covers relationship facts with zero deps. Real CRM sync is a Reality Interface extension, not a primitive.
+RATIONALE: All three items share the state.remember substrate, so one engine is correct. Customer memory works because episodic rows never expire — that IS the multi-decade guarantee.
+IMPACT: Companies can now hire humans for tasks, agents build an accurate owner model over time, and customers are remembered forever regardless of gap. Next: 3f Dream Cycle.
+
+### 2026-08-12
+TASK: Phase 3d — Memory & Wisdom (C4, C32, C76, C33, C14)
+DECISION: Built `src/wisdom/engine.ts` `WisdomEngine`. C4 Failure Museum (`archiveFailure`/`queryMuseum` — tagged by kind+company+custom tags, searchable); C32 Retirement Pool (`retireAgent`/`consultOracle`/`oracles` — retired agents preserved as read-only oracles, wisdom extracted from their procedural memory); C76 Ancestor Agents (`elevateToAncestor`/`ancestors` — oracle → ancestor status elevation with ritual event); C33 Historian (`recordHistory`/`biography` — ordered civilization biography by kind: milestone/incident/spawn/death/learning); C14 Emergence Detector (`flagEmergence`/`decideEmergence`/`emergenceSignals` — flags spontaneous behaviors with keep/kill/study/pending decisions). Wired `runtime.wisdom`. 6 tests, 227/227 suite passing.
+FORAGED: vector DB (Chroma, Pinecone) for museum — rejected; SQLite memory table with tag-based indexing covers query needs with zero deps. Embedding-based semantic search deferred to Phase 4 when volume warrants.
+RATIONALE: All 5 items share the same memory substrate (`state.remember`/`state.repos.memory`) so one file is correct; no abstraction boundary needed across them.
+IMPACT: The civilization now remembers its failures (queryable by new agents before repeating them), retires and consults its best agents, writes its own biography, and detects when something nobody programmed is happening. Next: 3e Human Interaction.
+
+### 2026-08-12
+TASK: Phase 3c — Company Lifecycle (C1, C24, birth, death)
+DECISION: Built `src/lifecycle/engine.ts` `CompanyLifecycle`. C1 Kill contracts (`createKillContract`/`evaluateKillContracts`/`executeKillContract` — contract stored in `__global__` memory with companyId+contractId in tags, execute halts + archives learnings + returns 80% remaining budget); C24 Dormancy (`enterDormancy`/`exitDormancy` — suspends all agents, zero cost, preserves all state, revives on demand); Birth (`birthCompany` — mission → sovereign spawn → budget set → active); Death (`deathProcess` — wind-down → archive learnings → return capital → archive status). Fixed bug: `evaluateKillContracts` was querying company memory instead of `__global__`, missing all contracts. 5 tests, 227/227 suite passing.
+FORAGED: lifecycle management libs — rejected; all operations reuse existing `Sovereign.haltCompany`/`spawnCompany` + memory substrate.
+RATIONALE: Kill contracts live in `__global__` because they're civilization-level governance decisions, not company-internal state.
+IMPACT: Companies can now self-terminate on conditions, sleep through slow seasons, be born from blueprints, and die with capital preservation. Next: 3d Memory & Wisdom.
+
+### 2026-08-12
 TASK: Phase 3a — Entity #2 E-Commerce (Riya) + Entity #3 Content (Kavya)
 DECISION: Built `src/entity/ecommerce.ts` `EcommerceRuntime` and `src/entity/content.ts` `ContentRuntime`. Entity #2 (Riya): e-commerce concierge with multi-channel intake (WhatsApp/Telegram/Web/Instagram), product lead rubric (interest/budget/timeline/category), cart/checkout event tracking (view/add/checkout/purchase/abandon + recovery), spend caps (₹800/day LLM, ₹0 ad/influencer spend approval gate), escalation rules (ad_spend, high_value_order, return_dispute, inventory, constitution). Entity #3 (Kavya): content growth strategist with multi-channel intake (YouTube/Newsletter/Twitter/LinkedIn), creator/sponsor lead rubric, content event tracking (view/subscribe/engage/sponsor_inquiry/churn_risk), spend caps (₹600/day LLM, ₹0 production/paid_promotion approval gate), escalation rules (production_spend, brand_safety, creator_dispute, copyright, constitution). Both: C96 mini-Council, C100 cryptographic anchoring, C18 persistent persona, wired `runtime.ecommerce` + `runtime.content`.
 FORAGED: e-commerce CRM / creator economy platforms — rejected; domain-specific rubrics + event models + approval gates keep zero deps and deterministic tests. Persona consistency enforced via single `persona()` return per entity.

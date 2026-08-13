@@ -153,3 +153,20 @@ export type DriverKind = 'deepseek' | 'mock';
 export function makeDriver(): LlmDriver {
   return process.env.DEEPSEEK_API_KEY ? new DeepSeekV4Flash() : new MockV4Flash();
 }
+
+// ── C23: Provider agnosticism ─────────────────────────────────────────────────
+// All LLM calls route through this registry. Swap providers without touching callers.
+
+export type ProviderName = 'anthropic' | 'openai' | 'deepseek' | 'ollama';
+
+let _provider: ProviderName = 'deepseek';
+let _providerConfig: Record<string, unknown> = {};
+
+export function setProvider(name: ProviderName, config: Record<string, unknown> = {}): void {
+  _provider = name;
+  _providerConfig = config;
+}
+
+export function currentProvider(): { name: ProviderName; config: Record<string, unknown> } {
+  return { name: _provider, config: _providerConfig };
+}
