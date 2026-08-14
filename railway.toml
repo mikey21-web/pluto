@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "npm run build:dashboard"
+buildCommand = "cd apps/dashboard && npm install && npm run build && cd ../.."
 
 [deploy]
 startCommand = "node --experimental-sqlite --experimental-strip-types src/api-server.ts"

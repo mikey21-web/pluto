@@ -1,0 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; }
+body { background: #080810; color: #e0e0e0; font-family: system-ui, sans-serif; margin: 0; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: #1a1a2e; border-radius: 2px; }

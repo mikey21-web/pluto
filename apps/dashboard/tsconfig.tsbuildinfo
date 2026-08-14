@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/api.ts","./src/main.tsx","./src/components/activityfeed.tsx","./src/components/agentdetail.tsx","./src/components/chatbar.tsx","./src/components/companygrid.tsx","./src/components/header.tsx","./src/components/orgcanvas.tsx","./src/components/spawnmodal.tsx","./src/components/taskspanel.tsx"],"version":"5.9.3"}

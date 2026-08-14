@@ -1,5 +1,5 @@
 import { createServer, IncomingMessage, ServerResponse } from 'node:http';
-import { mkdirSync, readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { PlutoState } from './kernel/state.ts';
 import { describeOrg } from './plane/governance.ts';
@@ -49,18 +49,36 @@ const server = createServer(async (req, res) => {
   const method = req.method ?? 'GET';
 
   try {
-    // GET / — serve the dashboard SPA
-    if (method === 'GET' && (url === '/' || url === '/dashboard')) {
-      const html = readFileSync(join(dashboardDir, 'index.html'), 'utf8');
+    // Serve Vite dashboard static files (all non-API GET requests)
+    if (method === 'GET' && !url.startsWith('/api') && !url.startsWith('/chat') &&
+        !url.startsWith('/companies') && !url.startsWith('/spawn') && !url.startsWith('/health') &&
+        !url.startsWith('/org') && !url.startsWith('/events')) {
+      const filePath = url === '/' ? 'index.html' : url.slice(1).split('?')[0];
+      const fullPath = join(dashboardDir, 'dist', filePath);
+      try {
+        if (existsSync(fullPath) && !fullPath.endsWith('/')) {
+          const content = readFileSync(fullPath);
+          const ext = filePath.split('.').pop() ?? '';
+          const mime: Record<string, string> = {
+            html: 'text/html; charset=utf-8',
+            js: 'application/javascript',
+            css: 'text/css',
+            svg: 'image/svg+xml',
+            ico: 'image/x-icon',
+            json: 'application/json',
+            woff2: 'font/woff2',
+            woff: 'font/woff',
+            ttf: 'font/ttf',
+            png: 'image/png',
+          };
+          res.writeHead(200, { 'Content-Type': mime[ext] ?? 'application/octet-stream' });
+          return res.end(content);
+        }
+      } catch { /* fall through to SPA index */ }
+      // SPA fallback
+      const html = readFileSync(join(dashboardDir, 'dist', 'index.html'));
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       return res.end(html);
-    }
-
-    // GET /dist/app.js — serve built dashboard JS
-    if (method === 'GET' && url === '/dist/app.js') {
-      const js = readFileSync(join(dashboardDir, 'dist', 'app.js'));
-      res.writeHead(200, { 'Content-Type': 'application/javascript' });
-      return res.end(js);
     }
 
     // GET /api/companies
