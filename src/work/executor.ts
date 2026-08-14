@@ -81,7 +81,7 @@ async function callGroq(apiKey: string, role: string, taskSummary: string, compa
     headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: 'llama-3.3-70b-versatile',
-      max_tokens: 400,
+      max_tokens: 4096,
       messages: [
         { role: 'system', content: `You are the ${role} of a company with mission: "${companyMission}". You are autonomous and action-oriented. Complete tasks concisely with specific outputs, decisions, or plans. No fluff.` },
         { role: 'user', content: `Task: ${taskSummary}\n\nProvide your output as ${role}:` }
