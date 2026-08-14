@@ -445,8 +445,14 @@ const server = createServer(async (req, res) => {
   }
 });
 
-server.listen(port, () => {
+server.listen(port, async () => {
   console.log(`Pluto API running on http://localhost:${port}`);
+  const groqKey = process.env.GROQ_API_KEY;
+  if (groqKey) {
+    const { AgentExecutor } = await import('./work/executor.ts');
+    const executor = new AgentExecutor(state, { groqApiKey: groqKey, pollMs: 10000 });
+    executor.start();
+  }
 });
 
 process.on('SIGTERM', () => { state.close(); server.close(); });
