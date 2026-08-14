@@ -7,6 +7,8 @@ import ActivityFeed from './components/ActivityFeed'
 import ChatBar from './components/ChatBar'
 import SpawnModal from './components/SpawnModal'
 import TasksPanel from './components/TasksPanel'
+import ApprovalsPanel from './components/ApprovalsPanel'
+import MemoryPanel from './components/MemoryPanel'
 
 export default function App() {
   const [companies, setCompanies] = useState<Company[]>([])
@@ -78,8 +80,16 @@ export default function App() {
             </div>
           ) : snapshot ? (
             <div className="p-6 flex flex-col gap-6">
+              <ApprovalsPanel
+                approvals={snapshot.approvals ?? []}
+                onDecide={async () => {
+                  const data = await api.snapshot(selectedId)
+                  setSnapshot(data)
+                }}
+              />
               <OrgCanvas snapshot={snapshot} companyId={selectedId} />
               <TasksPanel snapshot={snapshot} companyId={selectedId} />
+              <MemoryPanel memory={snapshot.memory ?? []} />
             </div>
           ) : (
             <div className="p-6 text-dim text-sm font-mono animate-pulse">Loading…</div>

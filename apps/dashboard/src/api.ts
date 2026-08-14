@@ -23,6 +23,16 @@ export const api = {
     }).then(r => r.json()),
   // /events for cross-company feed
   events: () => fetch(`${BASE}/events`).then(r => r.json()).catch(() => []),
+  approvals: (companyId: string) =>
+    fetch(`${BASE}/api/company/${companyId}/snapshot`)
+      .then(r => r.json())
+      .then((s: any) => (s.approvals ?? []) as Approval[]),
+  decide: (approvalId: string, decision: 'approved' | 'rejected') =>
+    fetch(`${BASE}/api/approvals/${approvalId}/decide`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ decision, by: 'founder' }),
+    }).then(r => r.json()),
 };
 
 export type Company = {
@@ -60,10 +70,30 @@ export type Event = {
   payload?: Record<string, unknown>;
 };
 
+export type Approval = {
+  id: string;
+  action: string;
+  summary: string;
+  risk: 'low' | 'medium' | 'high' | 'critical';
+  status: 'pending' | 'approved' | 'rejected';
+  authored_at: string;
+  actor_id?: string;
+};
+
+export type Memory = {
+  id: string;
+  type: 'episodic' | 'semantic' | 'working';
+  content: string;
+  ts: string;
+  confidence: number;
+};
+
 export type Snapshot = {
   company: Company;
   agents: Agent[];
   tasks: Task[];
   events: Event[];
   departments: Array<{ id: string; name: string }>;
+  approvals: Approval[];
+  memory: Memory[];
 };
