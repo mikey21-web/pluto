@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Agent, Snapshot, api } from '../api'
+import { PixelBadge, StatusKind } from './PixelBadge'
+import { PixelButton } from './PixelButton'
 
 type Props = {
   agent: Agent
@@ -9,12 +11,17 @@ type Props = {
   onClose: () => void
 }
 
+function agentStatusKind(status: string): StatusKind {
+  if (status === 'working' || status === 'active' || status === 'running') return 'working'
+  if (status === 'failed' || status === 'error') return 'blocked'
+  return 'idle'
+}
+
 export default function AgentDetail({ agent, companyId, snapshot, onClose }: Props) {
   const [taskSummary, setTaskSummary] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
 
-  // Find the agent's most recent task
   const agentTasks = snapshot.tasks.filter(t => t.agent_id === agent.id)
   const currentTask = agentTasks[0]
 
@@ -29,71 +36,113 @@ export default function AgentDetail({ agent, companyId, snapshot, onClose }: Pro
     setSubmitting(false)
   }
 
-  const statusColor = (s: string) => {
-    if (s === 'working' || s === 'active' || s === 'running') return 'text-accent'
-    if (s === 'failed' || s === 'error') return 'text-red-400'
-    return 'text-dim'
-  }
-
   return (
     <>
-      {/* Backdrop */}
-      <div className="fixed inset-0 z-20" onClick={onClose} />
+      <div style={{ position: 'fixed', inset: 0, zIndex: 20 }} onClick={onClose} />
       <motion.div
-        className="fixed right-0 top-12 bottom-16 w-80 z-30 bg-surface border-l border-border flex flex-col overflow-hidden"
-        initial={{ x: 320 }}
+        style={{
+          position: 'fixed',
+          right: 0,
+          top: 36,
+          bottom: 56,
+          width: 280,
+          zIndex: 30,
+          background: 'var(--cth-cream-50)',
+          boxShadow: '-1px 0 0 var(--cth-ink-100), var(--cth-shadow-hard)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}
+        initial={{ x: 280 }}
         animate={{ x: 0 }}
-        exit={{ x: 320 }}
+        exit={{ x: 280 }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
       >
-        <div className="flex items-center justify-between p-4 border-b border-border">
+        <div style={{
+          padding: '8px 12px',
+          background: 'var(--cth-cream-200)',
+          boxShadow: 'inset 0 -1px 0 var(--cth-ink-100)',
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+        }}>
           <div>
-            <h3 className="font-mono font-bold text-gray-100">{agent.name}</h3>
-            <p className="font-mono text-xs text-dim">{agent.role}</p>
+            <p style={{ fontFamily: 'var(--cth-font-display)', fontSize: 8, color: 'var(--cth-ink-900)', margin: '0 0 4px', letterSpacing: '0.05em' }}>
+              {agent.name.toUpperCase()}
+            </p>
+            <p style={{ fontFamily: 'var(--cth-font-ui)', fontSize: 11, color: 'var(--cth-ink-500)', margin: 0 }}>
+              {agent.role}
+            </p>
           </div>
-          <button onClick={onClose} className="text-dim hover:text-gray-200 text-xl leading-none">×</button>
+          <button
+            onClick={onClose}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--cth-ink-500)', fontSize: 18, lineHeight: 1, padding: 0, marginTop: 2 }}
+          >
+            ×
+          </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+        <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <p className="font-mono text-xs text-dim mb-1">STATUS</p>
-            <span className={`font-mono text-sm font-bold ${statusColor(agent.status)}`}>
-              {agent.status?.toUpperCase() || 'UNKNOWN'}
-            </span>
+            <p style={{ fontFamily: 'var(--cth-font-display)', fontSize: 8, color: 'var(--cth-ink-300)', margin: '0 0 6px', letterSpacing: '0.05em' }}>STATUS</p>
+            <PixelBadge status={agentStatusKind(agent.status)} />
           </div>
 
           {currentTask && (
             <div>
-              <p className="font-mono text-xs text-dim mb-1">CURRENT TASK</p>
-              <p className="text-sm text-gray-300">{currentTask.summary}</p>
+              <p style={{ fontFamily: 'var(--cth-font-display)', fontSize: 8, color: 'var(--cth-ink-300)', margin: '0 0 6px', letterSpacing: '0.05em' }}>CURRENT TASK</p>
+              <p style={{ fontFamily: 'var(--cth-font-ui)', fontSize: 13, color: 'var(--cth-ink-700)', margin: 0, lineHeight: '18px' }}>{currentTask.summary}</p>
               {currentTask.status === 'SUCCEEDED' && currentTask.result && (
-                <div className="mt-2 p-2 rounded bg-muted border border-border">
-                  <p className="font-mono text-xs text-dim mb-1">RESULT</p>
-                  <p className="text-xs text-gray-400 line-clamp-4">{currentTask.result}</p>
+                <div style={{
+                  marginTop: 8,
+                  padding: 8,
+                  background: 'var(--cth-cream-200)',
+                  boxShadow: 'inset 0 0 0 1px var(--cth-ink-100)',
+                }}>
+                  <p style={{ fontFamily: 'var(--cth-font-display)', fontSize: 8, color: 'var(--cth-ink-300)', margin: '0 0 4px', letterSpacing: '0.05em' }}>RESULT</p>
+                  <p style={{ fontFamily: 'var(--cth-font-mono)', fontSize: 11, color: 'var(--cth-ink-500)', margin: 0, lineHeight: '16px' }}>
+                    {currentTask.result.slice(0, 120)}{currentTask.result.length > 120 ? '…' : ''}
+                  </p>
                 </div>
               )}
             </div>
           )}
 
           <div>
-            <p className="font-mono text-xs text-dim mb-2">ASSIGN TASK</p>
+            <p style={{ fontFamily: 'var(--cth-font-display)', fontSize: 8, color: 'var(--cth-ink-300)', margin: '0 0 6px', letterSpacing: '0.05em' }}>ASSIGN TASK</p>
             <textarea
               value={taskSummary}
               onChange={e => setTaskSummary(e.target.value)}
               placeholder="What should this agent do?"
               rows={3}
-              className="w-full bg-bg border border-border rounded p-2 text-sm text-gray-200 placeholder-dim resize-none focus:border-accent focus:outline-none font-mono"
+              style={{
+                width: '100%',
+                background: 'var(--cth-cream-200)',
+                boxShadow: 'inset 0 0 0 1px var(--cth-ink-100)',
+                border: 'none',
+                padding: 8,
+                fontFamily: 'var(--cth-font-mono)',
+                fontSize: 12,
+                color: 'var(--cth-ink-900)',
+                resize: 'none',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
             />
             {submitted && (
-              <p className="font-mono text-xs text-accent mt-1">Task created!</p>
+              <p style={{ fontFamily: 'var(--cth-font-ui)', fontSize: 11, color: 'var(--cth-status-success)', margin: '4px 0 0' }}>Task created!</p>
             )}
-            <button
-              onClick={submit}
-              disabled={submitting || !taskSummary.trim()}
-              className="mt-2 w-full py-2 rounded bg-accent/10 border border-accent/40 text-accent font-mono text-xs hover:bg-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-            >
-              {submitting ? 'Assigning…' : 'Assign Task'}
-            </button>
+            <div style={{ marginTop: 8 }}>
+              <PixelButton
+                variant="primary"
+                size="sm"
+                fullWidth
+                disabled={submitting || !taskSummary.trim()}
+                onClick={submit}
+              >
+                {submitting ? 'Assigning…' : 'Assign Task'}
+              </PixelButton>
+            </div>
           </div>
         </div>
       </motion.div>

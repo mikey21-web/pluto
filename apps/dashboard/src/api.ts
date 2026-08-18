@@ -1,4 +1,4 @@
-const BASE = '';
+const BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '';
 
 export const api = {
   companies: () => fetch(`${BASE}/api/companies`).then(r => r.json()),

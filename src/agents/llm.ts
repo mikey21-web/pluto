@@ -148,16 +148,70 @@ function extractUrls(text: string): string[] {
   return [...full, ...bare];
 }
 
-export type DriverKind = 'deepseek' | 'mock';
+/** NousResearch Hermes-3 via OpenRouter (OpenAI-compatible). */
+export class HermesDriver implements LlmDriver {
+  model = process.env.HERMES_MODEL ?? 'nousresearch/hermes-3-llama-3.1-70b';
+  private key = process.env.OPENROUTER_API_KEY ?? '';
+
+  async complete(msgs: ChatMsg[], tools?: ToolDef[]): Promise<LlmCompletion> {
+    if (!this.key) throw new Error('OPENROUTER_API_KEY not set');
+    const toolDefs = tools?.map(t => ({
+      type: 'function',
+      function: { name: t.name, description: t.description, parameters: t.parameters },
+    }));
+    const body: Record<string, unknown> = {
+      model: this.model,
+      messages: msgs.map(m => ({
+        role: m.role, content: m.content,
+        ...(m.tool_call_id ? { tool_call_id: m.tool_call_id } : {}),
+        ...(m.name ? { name: m.name } : {}),
+      })),
+      tools: toolDefs && toolDefs.length ? toolDefs : undefined,
+      tool_choice: 'auto',
+      max_tokens: 4000,
+    };
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.key}`,
+        'HTTP-Referer': 'https://diyaaaa.in',
+        'X-Title': 'Pluto Autonomous Company OS',
+      },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`OpenRouter ${res.status}: ${await res.text()}`);
+    const data: any = await res.json();
+    const msg = data.choices?.[0]?.message ?? {};
+    const calls: ToolCall[] = (msg.tool_calls ?? []).map((tc: any) => ({
+      id: tc.id,
+      name: tc.function?.name ?? '',
+      arguments: tc.function?.arguments ?? '{}',
+    }));
+    return {
+      text: msg.content ?? '',
+      tool_calls: calls,
+      usage: {
+        prompt_tokens: data.usage?.prompt_tokens ?? 0,
+        completion_tokens: data.usage?.completion_tokens ?? 0,
+      },
+      model: this.model,
+    };
+  }
+}
+
+export type DriverKind = 'deepseek' | 'mock' | 'hermes';
 
 export function makeDriver(): LlmDriver {
-  return process.env.DEEPSEEK_API_KEY ? new DeepSeekV4Flash() : new MockV4Flash();
+  if (process.env.OPENROUTER_API_KEY) return new HermesDriver();
+  if (process.env.DEEPSEEK_API_KEY) return new DeepSeekV4Flash();
+  return new MockV4Flash();
 }
 
 // ── C23: Provider agnosticism ─────────────────────────────────────────────────
 // All LLM calls route through this registry. Swap providers without touching callers.
 
-export type ProviderName = 'anthropic' | 'openai' | 'deepseek' | 'ollama';
+export type ProviderName = 'anthropic' | 'openai' | 'deepseek' | 'ollama' | 'openrouter';
 
 let _provider: ProviderName = 'deepseek';
 let _providerConfig: Record<string, unknown> = {};

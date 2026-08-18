@@ -1,45 +1,73 @@
 import { Company } from '../api'
+import { PixelPanel } from './PixelPanel'
 
 type Props = {
   companies: Company[]
   onSelect: (id: string) => void
 }
 
+const ACCENTS = ['coral', 'mint', 'sky', 'lemon', 'lilac', 'peach'] as const
+
+function healthColor(h: string) {
+  if (h === 'healthy') return 'var(--cth-status-success)'
+  if (h === 'degraded') return 'var(--cth-status-working)'
+  return 'var(--cth-status-blocked)'
+}
+
 export default function CompanyGrid({ companies, onSelect }: Props) {
   if (companies.length === 0) return null
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      {companies.map(c => (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+      gap: 12,
+    }}>
+      {companies.map((c, i) => (
         <button
           key={c.id}
           onClick={() => onSelect(c.id)}
-          className="text-left p-5 rounded-xl border border-border bg-surface hover:border-accent/40 hover:bg-muted transition-all group"
+          style={{ textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
         >
-          <div className="flex items-start justify-between mb-3">
-            <h3 className="font-mono font-bold text-gray-100 group-hover:text-accent transition-colors">
-              {c.name}
-            </h3>
-            <span
-              className={`w-2 h-2 rounded-full mt-1 ${
-                c.health === 'healthy' ? 'bg-accent' : c.health === 'degraded' ? 'bg-yellow-400' : 'bg-red-500'
-              }`}
-            />
-          </div>
-          <p className="text-dim text-xs mb-4 line-clamp-2">{c.mission}</p>
-          <div className="flex gap-3 text-xs font-mono">
-            <span className="text-dim">
-              <span className="text-gray-300">{c.agents}</span> agents
-            </span>
-            <span className="text-dim">
-              <span className="text-green-400">{c.tasks_total}</span> done
-            </span>
-            {c.tasks_failed > 0 && (
-              <span className="text-dim">
-                <span className="text-red-400">{c.tasks_failed}</span> failed
-              </span>
-            )}
-          </div>
+          <PixelPanel
+            title={c.name.toUpperCase()}
+            accent={ACCENTS[i % ACCENTS.length]}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 }}>
+              <p style={{
+                fontFamily: 'var(--cth-font-ui)',
+                fontSize: 13,
+                color: 'var(--cth-ink-700)',
+                margin: 0,
+                lineHeight: '18px',
+                flex: 1,
+              }}>
+                {c.mission}
+              </p>
+              <span style={{
+                width: 8,
+                height: 8,
+                flexShrink: 0,
+                marginLeft: 8,
+                marginTop: 4,
+                background: healthColor(c.health),
+                display: 'inline-block',
+              }} />
+            </div>
+            <div style={{
+              display: 'flex',
+              gap: 12,
+              fontFamily: 'var(--cth-font-mono)',
+              fontSize: 11,
+              color: 'var(--cth-ink-300)',
+            }}>
+              <span><span style={{ color: 'var(--cth-ink-700)' }}>{c.agents}</span> agents</span>
+              <span><span style={{ color: 'var(--cth-status-success)' }}>{c.tasks_total}</span> done</span>
+              {c.tasks_failed > 0 && (
+                <span><span style={{ color: 'var(--cth-status-blocked)' }}>{c.tasks_failed}</span> failed</span>
+              )}
+            </div>
+          </PixelPanel>
         </button>
       ))}
     </div>

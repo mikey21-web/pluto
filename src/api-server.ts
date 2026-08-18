@@ -348,20 +348,41 @@ const server = createServer(async (req, res) => {
       let reply: string;
       let delegations: Array<{ role: string; message: string }>;
 
+      const openrouterKey = process.env.OPENROUTER_API_KEY;
       const groqKey = process.env.GROQ_API_KEY;
       const anthropicKey = process.env.ANTHROPIC_API_KEY;
-      const llmKey = groqKey || anthropicKey;
+      const anyLlmKey = openrouterKey || groqKey || anthropicKey;
 
-      if (llmKey) {
+      if (anyLlmKey) {
         try {
-          const isGroq = !!groqKey;
-          const systemPrompt = `You are PLUTO, an autonomous company OS. The user is the Sovereign. Respond as PLUTO in 1-2 sentences, then output a JSON block with key "delegations": array of {role,message} for CEO/COO/CFO. Format: <pluto>your reply</pluto><json>{"delegations":[...]}</json>`;
+          const systemPrompt = `You are Michael Scott, CEO of this autonomous company OS called Pluto. The Sovereign (user) gives you directives. Your job:
+1. Acknowledge the directive as Michael would (confident, slightly dramatic, World's Best Boss energy).
+2. Break it into specific tasks and assign each to a team member by role.
+3. Output EXACTLY this format — nothing before <pluto>, nothing after </json>:
+<pluto>Your 1-2 sentence reply as Michael.</pluto><json>{"delegations":[{"role":"COO","task":"specific action to take"},{"role":"CFO","task":"specific action to take"},{"role":"CTO","task":"specific action to take"}]}</json>
+
+Roles available: CEO, COO, CFO, CTO, CMO, CPO, Engineer, Analyst, Designer.
+Each task must be concrete and actionable. Max 4 delegations.`;
 
           let text = '';
-          if (isGroq) {
+          if (openrouterKey) {
+            const hermesModel = process.env.HERMES_MODEL ?? 'nousresearch/hermes-3-llama-3.1-70b';
+            const r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${openrouterKey}`,
+                'Content-Type': 'application/json',
+                'HTTP-Referer': 'https://diyaaaa.in',
+                'X-Title': 'Pluto Autonomous Company OS',
+              },
+              body: JSON.stringify({ model: hermesModel, max_tokens: 512, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: message }] }),
+            });
+            const data = await r.json() as any;
+            text = data?.choices?.[0]?.message?.content ?? '';
+          } else if (groqKey) {
             const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
               method: 'POST',
-              headers: { 'Authorization': `Bearer ${llmKey}`, 'Content-Type': 'application/json' },
+              headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
               body: JSON.stringify({ model: 'llama-3.3-70b-versatile', max_tokens: 512, messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: message }] }),
             });
             const data = await r.json() as any;
@@ -369,7 +390,7 @@ const server = createServer(async (req, res) => {
           } else {
             const r = await fetch('https://api.anthropic.com/v1/messages', {
               method: 'POST',
-              headers: { 'x-api-key': llmKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+              headers: { 'x-api-key': anthropicKey!, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
               body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 512, system: systemPrompt, messages: [{ role: 'user', content: message }] }),
             });
             const data = await r.json() as any;
@@ -379,8 +400,20 @@ const server = createServer(async (req, res) => {
           const plutoMatch = text.match(/<pluto>([\s\S]*?)<\/pluto>/);
           const jsonMatch = text.match(/<json>([\s\S]*?)<\/json>/);
           reply = plutoMatch?.[1]?.trim() ?? text.trim();
-          try { delegations = jsonMatch ? (JSON.parse(jsonMatch[1]) as any).delegations ?? [] : []; }
-          catch { delegations = []; }
+          try {
+            const parsed = jsonMatch ? (JSON.parse(jsonMatch[1]) as any) : {};
+            delegations = (parsed.delegations ?? []).map((d: any) => ({
+              role: d.role,
+              message: d.task ?? d.message ?? '',
+            }));
+          } catch { delegations = []; }
+
+          // Create real tasks in DB so agents update on the office floor
+          if (companyId && delegations.length) {
+            for (const d of delegations) {
+              repos.createTask({ company_id: companyId, summary: `[${d.role}] ${d.message}`, status: 'PENDING', kind: 'task', input: { delegatedBy: 'sovereign', role: d.role } });
+            }
+          }
         } catch {
           reply = `Understood. I've briefed your C-suite on: "${message}"`;
           delegations = [

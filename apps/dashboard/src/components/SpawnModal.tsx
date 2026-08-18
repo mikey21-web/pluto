@@ -1,8 +1,32 @@
 import { useState } from 'react'
+import { PixelPanel } from './PixelPanel'
+import { PixelButton } from './PixelButton'
 
 type Props = {
   onClose: () => void
   onSpawn: (name: string, mission: string) => Promise<void>
+}
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  background: 'var(--cth-cream-200)',
+  boxShadow: 'inset 0 0 0 1px var(--cth-ink-100)',
+  border: 'none',
+  padding: '6px 8px',
+  fontFamily: 'var(--cth-font-mono)',
+  fontSize: 13,
+  color: 'var(--cth-ink-900)',
+  outline: 'none',
+  boxSizing: 'border-box',
+}
+
+const labelStyle: React.CSSProperties = {
+  fontFamily: 'var(--cth-font-display)',
+  fontSize: 8,
+  color: 'var(--cth-ink-300)',
+  display: 'block',
+  marginBottom: 6,
+  letterSpacing: '0.05em',
 }
 
 export default function SpawnModal({ onClose, onSpawn }: Props) {
@@ -19,44 +43,57 @@ export default function SpawnModal({ onClose, onSpawn }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div
-        className="bg-surface border border-border rounded-xl p-6 w-full max-w-sm flex flex-col gap-4"
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between">
-          <h2 className="font-mono font-bold text-accent">Spawn Company</h2>
-          <button onClick={onClose} className="text-dim hover:text-gray-200 text-xl leading-none">×</button>
-        </div>
-
-        <div>
-          <label className="font-mono text-xs text-dim mb-1 block">COMPANY NAME</label>
-          <input
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder="Acme Corp"
-            className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-dim focus:border-accent focus:outline-none font-mono"
-          />
-        </div>
-
-        <div>
-          <label className="font-mono text-xs text-dim mb-1 block">MISSION</label>
-          <textarea
-            value={mission}
-            onChange={e => setMission(e.target.value)}
-            placeholder="What does this company do?"
-            rows={3}
-            className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-dim focus:border-accent focus:outline-none font-mono resize-none"
-          />
-        </div>
-
-        <button
-          onClick={submit}
-          disabled={loading || !name.trim() || !mission.trim()}
-          className="py-2 rounded-lg bg-accent/10 border border-accent/40 text-accent font-mono text-sm hover:bg-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-        >
-          {loading ? 'Spawning…' : 'Create Company'}
-        </button>
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(26, 19, 32, 0.6)',
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+      }}
+      onClick={onClose}
+    >
+      <div style={{ width: '100%', maxWidth: 360 }} onClick={e => e.stopPropagation()}>
+        <PixelPanel variant="dialog" title="SPAWN COMPANY" accent="lemon" noPadding>
+          <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div>
+              <label style={labelStyle}>COMPANY NAME</label>
+              <input
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="Acme Corp"
+                style={inputStyle}
+              />
+            </div>
+            <div>
+              <label style={labelStyle}>MISSION</label>
+              <textarea
+                value={mission}
+                onChange={e => setMission(e.target.value)}
+                placeholder="What does this company do?"
+                rows={3}
+                style={{ ...inputStyle, resize: 'none' }}
+              />
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <PixelButton variant="secondary" size="md" fullWidth onClick={onClose}>
+                Cancel
+              </PixelButton>
+              <PixelButton
+                variant="primary"
+                size="md"
+                fullWidth
+                disabled={loading || !name.trim() || !mission.trim()}
+                onClick={submit}
+              >
+                {loading ? 'Spawning…' : 'Create Company'}
+              </PixelButton>
+            </div>
+          </div>
+        </PixelPanel>
       </div>
     </div>
   )

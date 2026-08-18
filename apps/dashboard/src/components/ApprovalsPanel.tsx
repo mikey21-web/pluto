@@ -1,11 +1,22 @@
 import { useState } from 'react'
 import { api, Approval } from '../api'
+import { PixelPanel } from './PixelPanel'
+import { PixelButton } from './PixelButton'
 
-const riskColor: Record<string, string> = {
-  low: 'text-green-400 bg-green-400/10',
-  medium: 'text-yellow-400 bg-yellow-400/10',
-  high: 'text-orange-400 bg-orange-400/10',
-  critical: 'text-red-400 bg-red-400/10',
+function riskPillStyle(risk: string): React.CSSProperties {
+  const base: React.CSSProperties = {
+    fontFamily: 'var(--cth-font-display)',
+    fontSize: 8,
+    padding: '2px 6px',
+    letterSpacing: '0.05em',
+    display: 'inline-block',
+    lineHeight: '14px',
+    flexShrink: 0,
+  }
+  if (risk === 'critical') return { ...base, background: 'var(--cth-coral-light)', color: 'var(--cth-coral)' }
+  if (risk === 'high')     return { ...base, background: 'var(--cth-peach-light)', color: 'var(--cth-peach)' }
+  if (risk === 'medium')   return { ...base, background: 'var(--cth-lemon-light)', color: 'var(--cth-lemon)' }
+  return { ...base, background: 'var(--cth-mint-light)', color: 'var(--cth-mint)' }
 }
 
 export default function ApprovalsPanel({
@@ -31,49 +42,54 @@ export default function ApprovalsPanel({
   }
 
   return (
-    <div className="border border-yellow-500/30 rounded-xl bg-yellow-500/5 p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
-        <h3 className="text-xs font-mono uppercase tracking-widest text-yellow-400">
-          Pending Approvals ({pending.length})
-        </h3>
-      </div>
-      <div className="flex flex-col gap-2">
+    <PixelPanel title={`APPROVALS (${pending.length})`} accent="lemon">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {pending.map(a => (
           <div
             key={a.id}
-            className="rounded-lg border border-white/5 bg-surface p-3 flex flex-col gap-2"
+            style={{
+              background: 'var(--cth-cream-200)',
+              boxShadow: 'inset 0 0 0 1px var(--cth-ink-100)',
+              padding: 10,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+            }}
           >
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-mono text-dim mb-1">{a.action}</p>
-                <p className="text-sm text-gray-200 leading-snug line-clamp-2">{a.summary}</p>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontFamily: 'var(--cth-font-display)', fontSize: 8, color: 'var(--cth-ink-300)', margin: '0 0 4px', letterSpacing: '0.05em' }}>
+                  {a.action}
+                </p>
+                <p style={{ fontFamily: 'var(--cth-font-ui)', fontSize: 13, color: 'var(--cth-ink-900)', margin: 0, lineHeight: '18px' }}>
+                  {a.summary}
+                </p>
               </div>
-              <span
-                className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded-full shrink-0 ${riskColor[a.risk ?? 'low']}`}
-              >
-                {a.risk ?? 'low'}
-              </span>
+              <span style={riskPillStyle(a.risk ?? 'low')}>{a.risk ?? 'low'}</span>
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => decide(a.id, 'approved')}
+            <div style={{ display: 'flex', gap: 6 }}>
+              <PixelButton
+                variant="secondary"
+                size="sm"
+                fullWidth
                 disabled={deciding === a.id}
-                className="flex-1 text-xs font-mono py-1.5 rounded-md bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/30 transition disabled:opacity-40"
+                onClick={() => decide(a.id, 'approved')}
               >
                 {deciding === a.id ? '…' : '✓ Approve'}
-              </button>
-              <button
-                onClick={() => decide(a.id, 'rejected')}
+              </PixelButton>
+              <PixelButton
+                variant="destructive"
+                size="sm"
+                fullWidth
                 disabled={deciding === a.id}
-                className="flex-1 text-xs font-mono py-1.5 rounded-md bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30 transition disabled:opacity-40"
+                onClick={() => decide(a.id, 'rejected')}
               >
                 {deciding === a.id ? '…' : '✗ Reject'}
-              </button>
+              </PixelButton>
             </div>
           </div>
         ))}
       </div>
-    </div>
+    </PixelPanel>
   )
 }

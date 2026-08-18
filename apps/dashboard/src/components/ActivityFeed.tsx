@@ -8,11 +8,11 @@ type Props = {
 }
 
 function eventColor(type: string) {
-  if (type.startsWith('task.')) return '#ffd700'
-  if (type.startsWith('agent.')) return '#00ff88'
-  if (type.startsWith('sovereign.')) return '#a855f7'
-  if (type.startsWith('company.')) return '#3b82f6'
-  return '#4a4a6a'
+  if (type.startsWith('task.')) return 'var(--cth-lemon)'
+  if (type.startsWith('agent.')) return 'var(--cth-mint)'
+  if (type.startsWith('sovereign.')) return 'var(--cth-lilac)'
+  if (type.startsWith('company.')) return 'var(--cth-sky)'
+  return 'var(--cth-ink-300)'
 }
 
 function relativeTime(ts?: string) {
@@ -38,37 +38,82 @@ export default function ActivityFeed({ selectedId, snapshot }: Props) {
     return () => clearInterval(t)
   }, [])
 
-  // Prefer snapshot events when a company is selected
   const displayEvents = selectedId && snapshot?.events?.length
     ? snapshot.events.slice(0, 50)
     : events
 
   return (
-    <aside className="w-64 shrink-0 border-l border-border bg-surface overflow-y-auto hidden lg:flex flex-col">
-      <div className="p-3 border-b border-border">
-        <h2 className="font-mono text-xs text-dim uppercase tracking-widest">Live Activity</h2>
+    <aside
+      className="hidden lg:flex"
+      style={{
+        width: 220,
+        flexShrink: 0,
+        borderLeft: '1px solid var(--cth-ink-100)',
+        background: 'var(--cth-paper-100)',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      <div style={{
+        padding: '6px 12px',
+        borderBottom: '1px solid var(--cth-ink-100)',
+        fontFamily: 'var(--cth-font-display)',
+        fontSize: 8,
+        color: 'var(--cth-ink-500)',
+        letterSpacing: '0.05em',
+        flexShrink: 0,
+      }}>
+        LIVE ACTIVITY
       </div>
-      <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1">
+      <div style={{ flex: 1, overflowY: 'auto' }}>
         <AnimatePresence initial={false}>
           {displayEvents.length === 0 && (
-            <p className="text-dim text-xs font-mono p-2">No events yet</p>
+            <p style={{
+              fontFamily: 'var(--cth-font-mono)',
+              fontSize: 11,
+              color: 'var(--cth-ink-300)',
+              padding: '8px 12px',
+              margin: 0,
+            }}>
+              No events yet
+            </p>
           )}
           {displayEvents.map((e, i) => (
             <motion.div
               key={e.id ?? `${e.type}-${i}`}
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex gap-2 items-start py-1.5 border-b border-border/30"
+              style={{
+                display: 'flex',
+                gap: 8,
+                alignItems: 'flex-start',
+                padding: '6px 12px',
+                borderBottom: '1px solid var(--cth-cream-200)',
+              }}
             >
-              <span
-                className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
-                style={{ background: eventColor(e.type) }}
-              />
-              <div className="min-w-0">
-                <p className="font-mono text-xs truncate" style={{ color: eventColor(e.type) }}>
+              <span style={{
+                width: 8,
+                height: 8,
+                flexShrink: 0,
+                marginTop: 3,
+                background: eventColor(e.type),
+                display: 'inline-block',
+              }} />
+              <div style={{ minWidth: 0 }}>
+                <p style={{
+                  fontFamily: 'var(--cth-font-mono)',
+                  fontSize: 11,
+                  color: eventColor(e.type),
+                  margin: '0 0 2px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}>
                   {e.type}
                 </p>
-                <p className="font-mono text-xs text-dim">{relativeTime(e.ts)}</p>
+                <p style={{ fontFamily: 'var(--cth-font-mono)', fontSize: 10, color: 'var(--cth-ink-300)', margin: 0 }}>
+                  {relativeTime(e.ts)}
+                </p>
               </div>
             </motion.div>
           ))}

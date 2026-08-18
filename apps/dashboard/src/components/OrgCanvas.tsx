@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
 import { Snapshot, Agent } from '../api'
 import AgentDetail from './AgentDetail'
+import { PixelPanel } from './PixelPanel'
+import { PixelBadge, StatusKind } from './PixelBadge'
 
 type Props = {
   snapshot: Snapshot
@@ -10,16 +11,24 @@ type Props = {
 
 const CSUITE_ROLES = ['CEO', 'COO', 'CFO', 'CTO', 'CMO', 'CPO']
 
-function statusColor(status: string) {
-  if (status === 'working' || status === 'active' || status === 'running') return '#00ff88'
-  if (status === 'failed' || status === 'error') return '#ff4444'
-  return '#1a1a2e'
+function agentStatusKind(status: string): StatusKind {
+  if (status === 'working' || status === 'active' || status === 'running') return 'working'
+  if (status === 'failed' || status === 'error') return 'blocked'
+  return 'idle'
 }
 
-function statusTextColor(status: string) {
-  if (status === 'working' || status === 'active' || status === 'running') return '#080810'
-  if (status === 'failed' || status === 'error') return '#fff'
-  return '#4a4a6a'
+function agentSquareBg(status: string) {
+  const k = agentStatusKind(status)
+  if (k === 'working') return 'var(--cth-status-working)'
+  if (k === 'blocked') return 'var(--cth-status-blocked)'
+  return 'var(--cth-cream-300)'
+}
+
+function agentSquareFg(status: string) {
+  const k = agentStatusKind(status)
+  if (k === 'working') return 'var(--cth-ink-900)'
+  if (k === 'blocked') return 'var(--cth-cream-50)'
+  return 'var(--cth-ink-500)'
 }
 
 function abbrev(role: string) {
@@ -37,87 +46,102 @@ export default function OrgCanvas({ snapshot, companyId }: Props) {
   )
 
   return (
-    <div className="relative">
-      <div className="rounded-xl border border-border bg-surface p-6">
-        <h2 className="font-mono text-xs text-dim uppercase tracking-widest mb-6">Org Chart</h2>
-
-        {/* C-suite row */}
+    <div style={{ position: 'relative' }}>
+      <PixelPanel title="ORGANIZATION">
         {csuite.length > 0 && (
-          <div className="flex justify-center gap-6 mb-8">
-            {csuite.map((agent, i) => (
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
+            {csuite.map(agent => (
               <button
                 key={agent.id}
                 onClick={() => setSelectedAgent(agent)}
-                className="flex flex-col items-center gap-2 group"
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
               >
-                <div
-                  className="w-36 h-20 rounded-lg border flex flex-col items-center justify-center gap-1 transition-all hover:scale-105"
-                  style={{
-                    borderColor: statusColor(agent.status) === '#1a1a2e' ? '#1a1a2e' : statusColor(agent.status) + '60',
-                    background: '#0f0f1a',
-                  }}
-                >
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className="w-2 h-2 rounded-full"
-                      style={{ background: statusColor(agent.status), boxShadow: statusColor(agent.status) !== '#1a1a2e' ? `0 0 6px ${statusColor(agent.status)}` : 'none' }}
-                    />
-                    <span className="font-mono text-xs font-bold text-accent">{agent.role?.toUpperCase().slice(0, 3)}</span>
-                  </div>
-                  <span className="font-mono text-xs text-gray-300 text-center px-2 truncate w-full text-center">{agent.name}</span>
-                </div>
-                {/* SVG connector line down */}
-                {i === Math.floor(csuite.length / 2) && others.length > 0 && (
-                  <svg width="2" height="24" className="opacity-30"><line x1="1" y1="0" x2="1" y2="24" stroke="#00ff88" strokeWidth="1" /></svg>
-                )}
+                <PixelPanel variant="inset" style={{ width: 132, padding: '10px 12px', textAlign: 'center' }}>
+                  <p style={{
+                    fontFamily: 'var(--cth-font-display)',
+                    fontSize: 8,
+                    color: 'var(--cth-ink-900)',
+                    margin: '0 0 6px',
+                    letterSpacing: '0.05em',
+                  }}>
+                    {agent.role?.toUpperCase().slice(0, 3)}
+                  </p>
+                  <p style={{
+                    fontFamily: 'var(--cth-font-ui)',
+                    fontSize: 11,
+                    color: 'var(--cth-ink-700)',
+                    margin: '0 0 8px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}>
+                    {agent.name}
+                  </p>
+                  <PixelBadge status={agentStatusKind(agent.status)} />
+                </PixelPanel>
               </button>
             ))}
           </div>
         )}
 
-        {/* SVG lines from C-suite to agent grid */}
         {csuite.length > 0 && others.length > 0 && (
-          <div className="flex justify-center mb-4">
-            <svg width="80%" height="16" className="opacity-20">
-              <line x1="10%" y1="8" x2="90%" y2="8" stroke="#00ff88" strokeWidth="1" />
-            </svg>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+            <div style={{ width: '60%', height: 1, background: 'var(--cth-ink-100)' }} />
           </div>
         )}
 
-        {/* Agent pixel grid */}
         {others.length > 0 && (
           <div>
-            <p className="font-mono text-xs text-dim mb-3">Department Agents</p>
-            <div className="flex flex-wrap gap-2">
-              {others.map(agent => {
-                const color = statusColor(agent.status)
-                const isActive = color === '#00ff88'
-                return (
-                  <motion.button
-                    key={agent.id}
-                    onClick={() => setSelectedAgent(agent)}
-                    className="w-9 h-9 rounded flex items-center justify-center text-xs font-mono font-bold cursor-pointer"
-                    style={{
-                      background: color,
-                      color: statusTextColor(agent.status),
-                      border: `1px solid ${color === '#1a1a2e' ? '#2a2a3e' : color}`,
-                    }}
-                    animate={isActive ? { opacity: [0.7, 1, 0.7] } : { opacity: 1 }}
-                    transition={isActive ? { repeat: Infinity, duration: 2 } : {}}
-                    title={`${agent.name} — ${agent.role} — ${agent.status}`}
-                  >
-                    {abbrev(agent.role || agent.name || '??')}
-                  </motion.button>
-                )
-              })}
+            <p style={{
+              fontFamily: 'var(--cth-font-display)',
+              fontSize: 8,
+              color: 'var(--cth-ink-300)',
+              margin: '0 0 10px',
+              letterSpacing: '0.05em',
+            }}>
+              DEPARTMENT
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {others.map(agent => (
+                <button
+                  key={agent.id}
+                  onClick={() => setSelectedAgent(agent)}
+                  title={`${agent.name} — ${agent.role} — ${agent.status}`}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    background: agentSquareBg(agent.status),
+                    color: agentSquareFg(agent.status),
+                    fontFamily: 'var(--cth-font-display)',
+                    fontSize: 8,
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: 'var(--cth-shadow-hard)',
+                  }}
+                >
+                  {abbrev(agent.role || agent.name || '??')}
+                </button>
+              ))}
             </div>
           </div>
         )}
 
         {snapshot.agents.length === 0 && (
-          <p className="text-dim text-sm font-mono text-center py-8">No agents yet</p>
+          <p style={{
+            fontFamily: 'var(--cth-font-ui)',
+            fontSize: 13,
+            color: 'var(--cth-ink-300)',
+            textAlign: 'center',
+            padding: '32px 0',
+            margin: 0,
+          }}>
+            No agents yet
+          </p>
         )}
-      </div>
+      </PixelPanel>
 
       {selectedAgent && (
         <AgentDetail
